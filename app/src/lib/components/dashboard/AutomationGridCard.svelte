@@ -17,7 +17,9 @@
 <Card class="flex flex-col justify-between space-y-3 hover:border-white/20 transition-all">
 	<div class="space-y-2">
 		<div class="flex items-center justify-between gap-2">
-			<span class="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-surface-800 text-orbit-violet border border-orbit-violet/20">
+			<span
+				class="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-surface-800 text-orbit-violet border border-orbit-violet/20"
+			>
 				{automation.plan?.domain || 'GENERAL'}
 			</span>
 			<StatusBadge
@@ -45,12 +47,7 @@
 			<ArrowRight size={11} />
 		</a>
 
-		<Button
-			variant="primary"
-			size="sm"
-			loading={running}
-			onclick={() => onRun(automation.id)}
-		>
+		<Button variant="primary" size="sm" loading={running} onclick={() => onRun(automation.id)}>
 			<Play size={12} />
 			<span>Run now</span>
 		</Button>

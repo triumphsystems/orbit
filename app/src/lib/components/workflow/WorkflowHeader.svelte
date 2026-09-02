@@ -11,7 +11,14 @@
 		syncing?: boolean;
 	}
 
-	let { onDeploy, onReset, onSyncTopology, deploying = false, deployed = false, syncing = false }: Props = $props();
+	let {
+		onDeploy,
+		onReset,
+		onSyncTopology,
+		deploying = false,
+		deployed = false,
+		syncing = false
+	}: Props = $props();
 </script>
 
 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
@@ -58,7 +65,9 @@
 			loading={deploying}
 			disabled={deploying}
 			onclick={onDeploy}
-			class="flex-1 sm:flex-initial justify-center px-2.5 sm:px-3 text-xs {deployed ? 'border-emerald-500/40 text-emerald-300 bg-emerald-950/30' : ''}"
+			class="flex-1 sm:flex-initial justify-center px-2.5 sm:px-3 text-xs {deployed
+				? 'border-emerald-500/40 text-emerald-300 bg-emerald-950/30'
+				: ''}"
 		>
 			{#if deployed}
 				<CheckCircle2 size={14} class="text-emerald-400" />

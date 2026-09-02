@@ -53,7 +53,7 @@
 				r.valid ? 'true' : 'false',
 				...columns.map((c) => {
 					const val = r.data?.[c];
-					return typeof val === 'string' ? `"${val.replace(/"/g, '""')}"` : val ?? '';
+					return typeof val === 'string' ? `"${val.replace(/"/g, '""')}"` : (val ?? '');
 				})
 			].join(',');
 		});
@@ -71,7 +71,8 @@
 	// JSON Export Handler
 	function exportJSON() {
 		if (results.length === 0) return;
-		const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(results, null, 2));
+		const dataStr =
+			'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(results, null, 2));
 		const downloadAnchor = document.createElement('a');
 		downloadAnchor.setAttribute('href', dataStr);
 		downloadAnchor.setAttribute('download', `orbit_data_${Date.now()}.json`);
@@ -99,7 +100,9 @@
 	<div class="border border-white/10 rounded-xl overflow-hidden bg-surface-900 shadow-2xl">
 		<div class="overflow-x-auto max-h-[500px] overflow-y-auto">
 			<table class="w-full text-left border-collapse font-sans text-xs">
-				<thead class="sticky top-0 bg-surface-850 border-b border-white/10 text-[11px] font-mono uppercase text-slate-400 tracking-wider z-10">
+				<thead
+					class="sticky top-0 bg-surface-850 border-b border-white/10 text-[11px] font-mono uppercase text-slate-400 tracking-wider z-10"
+				>
 					<tr>
 						<th class="py-3 px-4 w-12 text-center">#</th>
 						<th class="py-3 px-4 w-28">Status</th>

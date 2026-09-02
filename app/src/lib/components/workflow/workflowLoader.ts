@@ -43,7 +43,11 @@ export function clearLocalNodes(): void {
 	}
 }
 
-export function createNodeFromTemplate(template: NodeTemplate, x: number, y: number): WorkflowNodeData {
+export function createNodeFromTemplate(
+	template: NodeTemplate,
+	x: number,
+	y: number
+): WorkflowNodeData {
 	return {
 		id: `node_${template.typeId}_${Date.now()}`,
 		typeId: template.typeId,

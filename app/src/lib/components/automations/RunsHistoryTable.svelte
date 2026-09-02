@@ -14,7 +14,9 @@
 	<div class="flex items-center gap-2">
 		<History size={18} class="text-orbit-cyan" />
 		<h2 class="text-base font-semibold text-slate-100">Past Execution Runs</h2>
-		<span class="text-xs font-mono px-2 py-0.5 rounded bg-surface-800 text-slate-400 border border-white/10">
+		<span
+			class="text-xs font-mono px-2 py-0.5 rounded bg-surface-800 text-slate-400 border border-white/10"
+		>
 			{runs.length} runs
 		</span>
 	</div>
@@ -22,7 +24,9 @@
 	<div class="border border-white/10 rounded-xl overflow-hidden bg-surface-900 shadow-2xl">
 		<div class="overflow-x-auto">
 			<table class="w-full text-left border-collapse font-sans text-xs">
-				<thead class="bg-surface-850 border-b border-white/10 text-[11px] font-mono uppercase text-slate-400 tracking-wider">
+				<thead
+					class="bg-surface-850 border-b border-white/10 text-[11px] font-mono uppercase text-slate-400 tracking-wider"
+				>
 					<tr>
 						<th class="py-3 px-4">Run Status</th>
 						<th class="py-3 px-4">Started At</th>
@@ -61,10 +65,7 @@
 								{/if}
 							</td>
 							<td class="py-3 px-4 text-right">
-								<a
-									href={`/runs/${r.id}`}
-									class="text-xs font-mono text-orbit-cyan hover:underline"
-								>
+								<a href={`/runs/${r.id}`} class="text-xs font-mono text-orbit-cyan hover:underline">
 									View Telemetry →
 								</a>
 							</td>

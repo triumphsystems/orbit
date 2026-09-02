@@ -25,7 +25,11 @@
 		: 'w-64'}"
 >
 	<!-- Brand / Logo & Collapse Toggle -->
-	<div class="p-3.5 border-b border-white/10 flex items-center {orbitStore.sidebarCollapsed ? 'justify-center' : 'justify-between'} gap-2">
+	<div
+		class="p-3.5 border-b border-white/10 flex items-center {orbitStore.sidebarCollapsed
+			? 'justify-center'
+			: 'justify-between'} gap-2"
+	>
 		{#if orbitStore.sidebarCollapsed}
 			<button
 				type="button"
@@ -37,7 +41,12 @@
 			</button>
 		{:else}
 			<a href="/" class="group block overflow-hidden">
-				<OrbitLogo size="md" showWordmark={true} animated={true} class="group-hover:opacity-90 transition-opacity" />
+				<OrbitLogo
+					size="md"
+					showWordmark={true}
+					animated={true}
+					class="group-hover:opacity-90 transition-opacity"
+				/>
 			</a>
 			<button
 				type="button"
@@ -53,13 +62,17 @@
 	<!-- Navigation Links -->
 	<nav class="p-2 space-y-1 flex-1 overflow-y-auto overflow-x-hidden">
 		{#if !orbitStore.sidebarCollapsed}
-			<div class="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 font-mono">
+			<div
+				class="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 font-mono"
+			>
 				Operations Hub
 			</div>
 		{/if}
 
 		{#each navItems as item}
-			{@const active = page.url.pathname === item.href || (item.href !== '/' && page.url.pathname.startsWith(item.href))}
+			{@const active =
+				page.url.pathname === item.href ||
+				(item.href !== '/' && page.url.pathname.startsWith(item.href))}
 			<a
 				href={item.href}
 				title={orbitStore.sidebarCollapsed ? item.label : undefined}
@@ -72,7 +85,9 @@
 				<div class="flex items-center gap-3">
 					<item.icon
 						size={18}
-						class={active ? 'text-orbit-cyan' : 'text-slate-400 group-hover:text-slate-200 transition-colors'}
+						class={active
+							? 'text-orbit-cyan'
+							: 'text-slate-400 group-hover:text-slate-200 transition-colors'}
 					/>
 					{#if !orbitStore.sidebarCollapsed}
 						<span class="truncate">{item.label}</span>
@@ -123,12 +138,18 @@
 						: 'bg-rose-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]'}"
 				></span>
 				<div class="flex-1 min-w-0">
-					<p class="text-xs font-medium {orbitStore.daemonConnected ? 'text-emerald-300' : 'text-rose-300'}">
+					<p
+						class="text-xs font-medium {orbitStore.daemonConnected
+							? 'text-emerald-300'
+							: 'text-rose-300'}"
+					>
 						{orbitStore.daemonConnected ? 'Daemon online' : 'Daemon offline'}
 					</p>
 					{#if orbitStore.health}
 						<p class="text-[10px] text-slate-500 font-mono mt-0.5 truncate">
-							{orbitStore.health.environment} · scheduler {orbitStore.health.scheduler_enabled ? 'on' : 'off'}
+							{orbitStore.health.environment} · scheduler {orbitStore.health.scheduler_enabled
+								? 'on'
+								: 'off'}
 						</p>
 					{/if}
 				</div>

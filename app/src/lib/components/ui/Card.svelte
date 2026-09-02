@@ -26,7 +26,9 @@
 </script>
 
 <div
-	class="bg-surface-900/90 border border-white/[0.08] rounded-xl p-5 backdrop-blur-md transition-all duration-200 {hoverEffect ? 'hover:border-white/[0.18]' : ''} {glowClasses[glow]} {className}"
+	class="bg-surface-900/90 border border-white/[0.08] rounded-xl p-5 backdrop-blur-md transition-all duration-200 {hoverEffect
+		? 'hover:border-white/[0.18]'
+		: ''} {glowClasses[glow]} {className}"
 	{...restProps}
 >
 	{@render children?.()}

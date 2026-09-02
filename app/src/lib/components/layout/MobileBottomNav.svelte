@@ -22,7 +22,9 @@
 >
 	<div class="flex items-center justify-around max-w-lg mx-auto">
 		{#each navItems as item}
-			{@const active = page.url.pathname === item.href || (item.href !== '/' && page.url.pathname.startsWith(item.href))}
+			{@const active =
+				page.url.pathname === item.href ||
+				(item.href !== '/' && page.url.pathname.startsWith(item.href))}
 			<a
 				href={item.href}
 				aria-current={active ? 'page' : undefined}
@@ -31,17 +33,29 @@
 					: 'text-slate-400 hover:text-slate-200'}"
 			>
 				{#if active}
-					<span class="absolute -top-1.5 w-8 h-0.5 rounded-full bg-orbit-cyan shadow-[0_0_8px_#00F2FE]"></span>
+					<span
+						class="absolute -top-1.5 w-8 h-0.5 rounded-full bg-orbit-cyan shadow-[0_0_8px_#00F2FE]"
+					></span>
 				{/if}
 
-				<div class="p-1 rounded-lg transition-colors {active ? 'bg-orbit-cyan/10' : 'group-hover:bg-surface-800'}">
+				<div
+					class="p-1 rounded-lg transition-colors {active
+						? 'bg-orbit-cyan/10'
+						: 'group-hover:bg-surface-800'}"
+				>
 					<item.icon
 						size={18}
-						class={active ? 'text-orbit-cyan' : 'text-slate-400 group-hover:text-slate-200 transition-colors'}
+						class={active
+							? 'text-orbit-cyan'
+							: 'text-slate-400 group-hover:text-slate-200 transition-colors'}
 					/>
 				</div>
 
-				<span class="text-[10px] font-sans tracking-tight mt-0.5 leading-tight {active ? 'text-orbit-cyan font-semibold' : 'text-slate-400'}">
+				<span
+					class="text-[10px] font-sans tracking-tight mt-0.5 leading-tight {active
+						? 'text-orbit-cyan font-semibold'
+						: 'text-slate-400'}"
+				>
 					{item.shortLabel ?? item.label}
 				</span>
 			</a>

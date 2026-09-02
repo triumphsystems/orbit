@@ -36,7 +36,9 @@
 			class="relative w-full max-w-xl bg-surface-900 border-l border-white/10 shadow-2xl flex flex-col h-full z-10 animate-in slide-in-from-right duration-200"
 		>
 			<!-- Header -->
-			<div class="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-white/10 flex items-center justify-between bg-surface-850">
+			<div
+				class="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-white/10 flex items-center justify-between bg-surface-850"
+			>
 				<div>
 					{#if title}
 						<h3 class="text-sm sm:text-base font-semibold text-slate-100 flex items-center gap-2">
@@ -44,7 +46,11 @@
 						</h3>
 					{/if}
 					{#if subtitle}
-						<p class="text-[11px] sm:text-xs text-slate-400 mt-0.5 font-mono truncate max-w-xs sm:max-w-md">{subtitle}</p>
+						<p
+							class="text-[11px] sm:text-xs text-slate-400 mt-0.5 font-mono truncate max-w-xs sm:max-w-md"
+						>
+							{subtitle}
+						</p>
 					{/if}
 				</div>
 				<button

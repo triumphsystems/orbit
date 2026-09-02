@@ -1,5 +1,14 @@
 <script lang="ts">
-	import { Sparkles, ArrowRight, Plus, Cpu, FileText, DollarSign, Database, Activity } from '@lucide/svelte';
+	import {
+		Sparkles,
+		ArrowRight,
+		Plus,
+		Cpu,
+		FileText,
+		DollarSign,
+		Database,
+		Activity
+	} from '@lucide/svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import { orbitStore } from '$lib/state/orbit.svelte';
 
@@ -69,9 +78,13 @@
 			class="absolute -inset-1 bg-gradient-to-r from-orbit-cyan/20 via-sky-500/15 to-emerald-500/20 rounded-3xl opacity-30 group-focus-within:opacity-75 blur-md transition-all duration-300 pointer-events-none"
 		></div>
 
-		<div class="relative bg-surface-900 border border-white/10 group-focus-within:border-orbit-cyan/40 rounded-2xl p-4 md:p-5 shadow-2xl transition-colors space-y-3">
+		<div
+			class="relative bg-surface-900 border border-white/10 group-focus-within:border-orbit-cyan/40 rounded-2xl p-4 md:p-5 shadow-2xl transition-colors space-y-3"
+		>
 			{#if loading && orbitStore.goalReasoningStage}
-				<div class="px-3 py-1.5 rounded-lg bg-orbit-cyan/10 border border-orbit-cyan/30 text-orbit-cyan text-xs font-mono flex items-center gap-2 animate-in fade-in duration-200">
+				<div
+					class="px-3 py-1.5 rounded-lg bg-orbit-cyan/10 border border-orbit-cyan/30 text-orbit-cyan text-xs font-mono flex items-center gap-2 animate-in fade-in duration-200"
+				>
 					<Sparkles size={13} class="animate-spin text-orbit-cyan shrink-0" />
 					<span class="truncate">{orbitStore.goalReasoningStage.message}</span>
 				</div>
@@ -106,7 +119,10 @@
 					</button>
 
 					<span class="text-[11px] font-mono text-slate-500 hidden md:inline">
-						Press <kbd class="px-1.5 py-0.5 rounded bg-surface-800 text-slate-400 border border-white/10 text-[10px]">Ctrl+Enter</kbd> to run
+						Press <kbd
+							class="px-1.5 py-0.5 rounded bg-surface-800 text-slate-400 border border-white/10 text-[10px]"
+							>Ctrl+Enter</kbd
+						> to run
 					</span>
 				</div>
 

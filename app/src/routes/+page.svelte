@@ -30,13 +30,21 @@
 	}
 </script>
 
-<div class="max-w-5xl mx-auto flex flex-col justify-between min-h-[calc(100dvh-8rem)] md:min-h-0 md:block md:space-y-12 pb-2 md:pb-16">
+<div
+	class="max-w-5xl mx-auto flex flex-col justify-between min-h-[calc(100dvh-8rem)] md:min-h-0 md:block md:space-y-12 pb-2 md:pb-16"
+>
 	<!-- Hero Canvas (Vertically centered on mobile like Gemini, standard flow on desktop) -->
-	<section class="flex-1 flex flex-col justify-center space-y-4 sm:space-y-6 md:space-y-8 py-2 md:py-12">
+	<section
+		class="flex-1 flex flex-col justify-center space-y-4 sm:space-y-6 md:space-y-8 py-2 md:py-12"
+	>
 		<!-- Heroic Overview Header (Dynamic 2-line viewport auto-fit) -->
 		<div class="text-center space-y-2 md:space-y-3">
-			<h1 class="text-[clamp(1.45rem,6.6vw,2.15rem)] sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight font-display text-center leading-[1.12]">
-				<span class="bg-gradient-to-r from-orbit-cyan via-sky-300 to-orbit-violet bg-clip-text text-transparent block whitespace-nowrap">
+			<h1
+				class="text-[clamp(1.45rem,6.6vw,2.15rem)] sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight font-display text-center leading-[1.12]"
+			>
+				<span
+					class="bg-gradient-to-r from-orbit-cyan via-sky-300 to-orbit-violet bg-clip-text text-transparent block whitespace-nowrap"
+				>
 					What web data operations
 				</span>
 				<span class="text-slate-100 block whitespace-nowrap mt-0.5 sm:mt-1 md:mt-2">
@@ -44,7 +52,8 @@
 				</span>
 			</h1>
 			<p class="hidden md:block text-sm text-slate-400 max-w-2xl mx-auto font-sans leading-relaxed">
-				Define your objective in plain English. Orbit autonomously handles web discovery, structured extraction, anomaly validation, condition alerts, and downstream workflows.
+				Define your objective in plain English. Orbit autonomously handles web discovery, structured
+				extraction, anomaly validation, condition alerts, and downstream workflows.
 			</p>
 		</div>
 
@@ -58,9 +67,15 @@
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-2">
 					<span class="w-2 h-2 rounded-full bg-orbit-cyan animate-pulse"></span>
-					<span class="text-xs font-semibold text-orbit-cyan uppercase tracking-wider font-mono">Extraction Plan Ready</span>
+					<span class="text-xs font-semibold text-orbit-cyan uppercase tracking-wider font-mono"
+						>Extraction Plan Ready</span
+					>
 				</div>
-				<button type="button" onclick={() => (previewAutomation = null)} class="text-xs text-slate-500 hover:text-slate-300 transition-colors font-mono">
+				<button
+					type="button"
+					onclick={() => (previewAutomation = null)}
+					class="text-xs text-slate-500 hover:text-slate-300 transition-colors font-mono"
+				>
 					Dismiss
 				</button>
 			</div>
@@ -81,15 +96,21 @@
 				class="flex items-center justify-between p-3 rounded-xl bg-surface-900/80 border border-white/10 hover:border-orbit-cyan/30 transition-all active:scale-[0.99] group shadow-sm"
 			>
 				<div class="flex items-center gap-2.5">
-					<div class="w-7 h-7 rounded-lg bg-surface-800 border border-white/5 flex items-center justify-center text-orbit-cyan shrink-0">
+					<div
+						class="w-7 h-7 rounded-lg bg-surface-800 border border-white/5 flex items-center justify-center text-orbit-cyan shrink-0"
+					>
 						<Layers size={14} />
 					</div>
 					<div class="text-left">
 						<div class="text-xs font-semibold text-slate-200">Active Web Monitors</div>
-						<div class="text-[10px] font-mono text-slate-500">0 monitors • Fleet ready for missions</div>
+						<div class="text-[10px] font-mono text-slate-500">
+							0 monitors • Fleet ready for missions
+						</div>
 					</div>
 				</div>
-				<div class="flex items-center gap-1 text-[11px] font-mono text-orbit-cyan group-hover:translate-x-0.5 transition-transform">
+				<div
+					class="flex items-center gap-1 text-[11px] font-mono text-orbit-cyan group-hover:translate-x-0.5 transition-transform"
+				>
 					<span>Fleet</span>
 					<ArrowRight size={11} />
 				</div>
@@ -101,11 +122,16 @@
 					<div class="flex items-center gap-1.5 text-xs font-bold text-slate-100 font-display">
 						<Layers size={14} class="text-orbit-cyan" />
 						<span>Active Monitors</span>
-						<span class="px-1.5 py-0.2 rounded-md bg-surface-800 border border-white/10 text-[10px] font-mono text-slate-400">
+						<span
+							class="px-1.5 py-0.2 rounded-md bg-surface-800 border border-white/10 text-[10px] font-mono text-slate-400"
+						>
 							{orbitStore.automations.length}
 						</span>
 					</div>
-					<a href="/automations" class="text-[11px] font-mono text-slate-400 hover:text-orbit-cyan flex items-center gap-0.5">
+					<a
+						href="/automations"
+						class="text-[11px] font-mono text-slate-400 hover:text-orbit-cyan flex items-center gap-0.5"
+					>
 						<span>View all</span>
 						<ArrowRight size={11} />
 					</a>
@@ -131,11 +157,16 @@
 			<div class="flex items-center gap-2.5">
 				<Layers size={16} class="text-orbit-cyan" />
 				<h2 class="text-base font-bold text-slate-100 font-display">Active Web Monitors</h2>
-				<span class="inline-flex items-center px-2 py-0.5 rounded-md bg-surface-800 border border-white/10 text-[11px] font-mono font-medium text-slate-400">
+				<span
+					class="inline-flex items-center px-2 py-0.5 rounded-md bg-surface-800 border border-white/10 text-[11px] font-mono font-medium text-slate-400"
+				>
 					{orbitStore.automations.length}
 				</span>
 			</div>
-			<a href="/automations" class="text-xs font-medium text-slate-400 hover:text-orbit-cyan transition-colors flex items-center gap-1 font-mono">
+			<a
+				href="/automations"
+				class="text-xs font-medium text-slate-400 hover:text-orbit-cyan transition-colors flex items-center gap-1 font-mono"
+			>
 				<span>View all monitors</span>
 				<ArrowRight size={12} />
 			</a>
@@ -149,14 +180,19 @@
 					onRun={handleRunNow}
 				/>
 			{:else}
-				<div class="col-span-full border border-dashed border-white/10 rounded-2xl p-10 text-center space-y-3 bg-surface-900/40">
-					<div class="w-12 h-12 rounded-full bg-surface-800 border border-white/5 flex items-center justify-center mx-auto text-orbit-cyan">
+				<div
+					class="col-span-full border border-dashed border-white/10 rounded-2xl p-10 text-center space-y-3 bg-surface-900/40"
+				>
+					<div
+						class="w-12 h-12 rounded-full bg-surface-800 border border-white/5 flex items-center justify-center mx-auto text-orbit-cyan"
+					>
 						<Globe size={22} />
 					</div>
 					<div>
 						<p class="text-sm font-semibold text-slate-200">No active web monitors yet</p>
 						<p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-							Type a data goal above or click a suggestion pill to start collecting web data hands-off.
+							Type a data goal above or click a suggestion pill to start collecting web data
+							hands-off.
 						</p>
 					</div>
 				</div>

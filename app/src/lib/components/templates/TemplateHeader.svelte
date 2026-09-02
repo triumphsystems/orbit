@@ -26,7 +26,7 @@
 		<Button
 			variant="secondary"
 			size="sm"
-			loading={loading}
+			{loading}
 			onclick={onRefresh}
 			class="flex-1 sm:flex-initial justify-center px-2.5 sm:px-3 text-xs"
 			title="Refresh templates"

@@ -1,5 +1,13 @@
 <script lang="ts">
-	import { ChevronDown, ChevronRight, CheckCircle2, ShieldAlert, ArrowUpRight, Calendar, Table } from '@lucide/svelte';
+	import {
+		ChevronDown,
+		ChevronRight,
+		CheckCircle2,
+		ShieldAlert,
+		ArrowUpRight,
+		Calendar,
+		Table
+	} from '@lucide/svelte';
 	import type { AutomationOut, ResultOut } from '$lib/api/types';
 	import DataTable from './DataTable.svelte';
 
@@ -15,7 +23,9 @@
 	let isExpanded = $state(false);
 </script>
 
-<div class="bg-surface-900 border border-white/10 rounded-xl overflow-hidden shadow-xl transition-all">
+<div
+	class="bg-surface-900 border border-white/10 rounded-xl overflow-hidden shadow-xl transition-all"
+>
 	<!-- Collapsible Header Banner -->
 	<div
 		role="button"
@@ -26,16 +36,22 @@
 	>
 		<div class="space-y-1.5 min-w-0 flex-1">
 			<div class="flex items-center gap-2 flex-wrap">
-				<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-orbit-cyan/10 text-orbit-cyan border border-orbit-cyan/30 uppercase tracking-wider">
+				<span
+					class="px-2 py-0.5 rounded text-[10px] font-mono bg-orbit-cyan/10 text-orbit-cyan border border-orbit-cyan/30 uppercase tracking-wider"
+				>
 					Entity: {automation.plan?.extraction_schema?.entity_name || 'item'}
 				</span>
 				{#if automation.plan?.frequency}
-					<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-surface-800 text-slate-400 border border-white/10 flex items-center gap-1">
+					<span
+						class="px-2 py-0.5 rounded text-[10px] font-mono bg-surface-800 text-slate-400 border border-white/10 flex items-center gap-1"
+					>
 						<Calendar size={10} />
 						<span>{automation.plan.frequency}</span>
 					</span>
 				{/if}
-				<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-surface-800 text-slate-300 border border-white/10 flex items-center gap-1">
+				<span
+					class="px-2 py-0.5 rounded text-[10px] font-mono bg-surface-800 text-slate-300 border border-white/10 flex items-center gap-1"
+				>
 					<Table size={10} />
 					<span>{totalCount} records</span>
 				</span>
@@ -54,14 +70,24 @@
 		</div>
 
 		<!-- Telemetry & Actions -->
-		<div class="flex items-center gap-3 self-end lg:self-auto shrink-0" onclick={(e) => e.stopPropagation()} role="presentation">
+		<div
+			class="flex items-center gap-3 self-end lg:self-auto shrink-0"
+			onclick={(e) => e.stopPropagation()}
+			role="presentation"
+		>
 			<div class="flex items-center gap-2 font-mono text-xs">
-				<span class="flex items-center gap-1 text-emerald-400 bg-emerald-950/40 px-2 py-1 rounded border border-emerald-500/20">
-					<CheckCircle2 size={12} /> {validCount} valid
+				<span
+					class="flex items-center gap-1 text-emerald-400 bg-emerald-950/40 px-2 py-1 rounded border border-emerald-500/20"
+				>
+					<CheckCircle2 size={12} />
+					{validCount} valid
 				</span>
 				{#if anomalyCount > 0}
-					<span class="flex items-center gap-1 text-rose-400 bg-rose-950/40 px-2 py-1 rounded border border-rose-500/20">
-						<ShieldAlert size={12} /> {anomalyCount} anomalies
+					<span
+						class="flex items-center gap-1 text-rose-400 bg-rose-950/40 px-2 py-1 rounded border border-rose-500/20"
+					>
+						<ShieldAlert size={12} />
+						{anomalyCount} anomalies
 					</span>
 				{/if}
 			</div>
@@ -91,14 +117,22 @@
 				<div class="flex items-center gap-2 flex-wrap text-xs font-mono text-slate-400 pt-3">
 					<span class="text-[11px] text-slate-500">Schema Columns:</span>
 					{#each automation.plan.extraction_schema.fields as field}
-						<span class="px-2 py-0.5 rounded text-[11px] bg-surface-800 border border-white/5 text-slate-300">
-							{field.name} <span class="text-slate-500 text-[10px]">({field.type}{field.required ? ' *' : ''})</span>
+						<span
+							class="px-2 py-0.5 rounded text-[11px] bg-surface-800 border border-white/5 text-slate-300"
+						>
+							{field.name}
+							<span class="text-slate-500 text-[10px]"
+								>({field.type}{field.required ? ' *' : ''})</span
+							>
 						</span>
 					{/each}
 				</div>
 			{/if}
 
-			<DataTable results={results} title={`${automation.plan?.extraction_schema?.entity_name || 'Item'} Records`} />
+			<DataTable
+				{results}
+				title={`${automation.plan?.extraction_schema?.entity_name || 'Item'} Records`}
+			/>
 		</div>
 	{/if}
 </div>

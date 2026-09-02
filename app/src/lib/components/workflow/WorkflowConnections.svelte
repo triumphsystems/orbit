@@ -47,8 +47,21 @@
 	{#each edges as edge (edge.id)}
 		{@const path = calculateBezierPath(edge.from, edge.to)}
 		{#if path}
-			<path d={path} fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="3" stroke-linecap="round" />
-			<path d={path} fill="none" stroke="url(#orbitLineGrad)" stroke-width="2" stroke-dasharray="6,4" class="animate-pulse" />
+			<path
+				d={path}
+				fill="none"
+				stroke="rgba(255,255,255,0.15)"
+				stroke-width="3"
+				stroke-linecap="round"
+			/>
+			<path
+				d={path}
+				fill="none"
+				stroke="url(#orbitLineGrad)"
+				stroke-width="2"
+				stroke-dasharray="6,4"
+				class="animate-pulse"
+			/>
 		{/if}
 	{/each}
 </svg>

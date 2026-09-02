@@ -1,7 +1,18 @@
 <script lang="ts">
 	import '../app.css';
 	import { onMount } from 'svelte';
-	import { Radio, Layers, Database, GitBranch, FileText, Activity, RefreshCw, Menu, PanelLeftClose, PanelLeftOpen } from '@lucide/svelte';
+	import {
+		Radio,
+		Layers,
+		Database,
+		GitBranch,
+		FileText,
+		Activity,
+		RefreshCw,
+		Menu,
+		PanelLeftClose,
+		PanelLeftOpen
+	} from '@lucide/svelte';
 	import { orbitStore } from '$lib/state/orbit.svelte';
 	import DesktopSidebar from '$lib/components/layout/DesktopSidebar.svelte';
 	import MobileNav from '$lib/components/layout/MobileNav.svelte';
@@ -42,7 +53,9 @@
 	<!-- Main Content Canvas -->
 	<div class="flex-1 flex flex-col min-w-0 overflow-hidden">
 		<!-- Top Bar (Desktop header with status & quick toggle) -->
-		<header class="hidden md:flex h-14 bg-surface-900/80 backdrop-blur-md border-b border-white/10 px-4 sm:px-6 items-center justify-between shrink-0 z-10">
+		<header
+			class="hidden md:flex h-14 bg-surface-900/80 backdrop-blur-md border-b border-white/10 px-4 sm:px-6 items-center justify-between shrink-0 z-10"
+		>
 			<div class="flex items-center gap-3">
 				<button
 					type="button"
@@ -57,7 +70,11 @@
 
 				<div class="flex items-center gap-2.5 text-xs font-mono text-slate-400">
 					<Activity size={14} class="text-orbit-cyan animate-pulse" />
-					<span>Active Automations: <strong class="text-slate-100">{orbitStore.activeAutomationsCount}</strong></span>
+					<span
+						>Active Automations: <strong class="text-slate-100"
+							>{orbitStore.activeAutomationsCount}</strong
+						></span
+					>
 				</div>
 			</div>
 

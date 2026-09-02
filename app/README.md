@@ -43,6 +43,7 @@ cp .env.example .env
 ```
 
 Default configuration:
+
 ```env
 PUBLIC_API_URL=http://localhost:8000/api/v1
 ```

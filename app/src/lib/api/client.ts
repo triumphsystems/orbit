@@ -56,7 +56,11 @@ export class ApiClient {
 	private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
 		const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 		const url = `${this.baseUrl}${cleanEndpoint}`;
-		const headers: HeadersInit = { 'Content-Type': 'application/json', Accept: 'application/json', ...options.headers };
+		const headers: HeadersInit = {
+			'Content-Type': 'application/json',
+			Accept: 'application/json',
+			...options.headers
+		};
 
 		const response = await fetch(url, { ...options, headers });
 		if (!response.ok) {
@@ -64,7 +68,10 @@ export class ApiClient {
 			try {
 				const errorJson = await response.json();
 				if (errorJson.detail) {
-					errorMessage = typeof errorJson.detail === 'string' ? errorJson.detail : JSON.stringify(errorJson.detail);
+					errorMessage =
+						typeof errorJson.detail === 'string'
+							? errorJson.detail
+							: JSON.stringify(errorJson.detail);
 				}
 			} catch {}
 			throw new Error(errorMessage);
@@ -73,7 +80,9 @@ export class ApiClient {
 		return text ? JSON.parse(text) : ({} as T);
 	}
 
-	async getHealth(): Promise<HealthStatus> { return this.request<HealthStatus>('/health'); }
+	async getHealth(): Promise<HealthStatus> {
+		return this.request<HealthStatus>('/health');
+	}
 	async listAutomations(useCache: boolean = true): Promise<AutomationListOut> {
 		const key = 'automations:list';
 		if (useCache) {
@@ -84,10 +93,15 @@ export class ApiClient {
 		this.setCache(key, res, 15000);
 		return res;
 	}
-	async getAutomation(id: string): Promise<AutomationOut> { return this.request<AutomationOut>(`/automations/${id}`); }
+	async getAutomation(id: string): Promise<AutomationOut> {
+		return this.request<AutomationOut>(`/automations/${id}`);
+	}
 	async createAutomation(payload: GoalRequest): Promise<AutomationOut> {
 		this.invalidateCache('automations');
-		return this.request<AutomationOut>('/automations', { method: 'POST', body: JSON.stringify(payload) });
+		return this.request<AutomationOut>('/automations', {
+			method: 'POST',
+			body: JSON.stringify(payload)
+		});
 	}
 	streamGoalPlan(
 		goal: string,
@@ -131,11 +145,17 @@ export class ApiClient {
 		this.invalidateCache('automations');
 		return this.request<RunOut>(`/runs/${runId}/retry`, { method: 'POST' });
 	}
-	async getRun(runId: string): Promise<RunOut> { return this.request<RunOut>(`/runs/${runId}`); }
+	async getRun(runId: string): Promise<RunOut> {
+		return this.request<RunOut>(`/runs/${runId}`);
+	}
 	getRunStreamUrl(runId: string): string {
 		return `${this.baseUrl}/runs/${runId}/stream`;
 	}
-	streamRun(runId: string, onUpdate: (run: RunOut) => void, onError?: (err: any) => void): () => void {
+	streamRun(
+		runId: string,
+		onUpdate: (run: RunOut) => void,
+		onError?: (err: any) => void
+	): () => void {
 		const url = this.getRunStreamUrl(runId);
 		const conn = createSSEConnection<RunOut>({
 			url,
@@ -210,42 +230,80 @@ export class ApiClient {
 			body: JSON.stringify({ nodes })
 		});
 	}
-	async testAdapterConnection(adapterId: string, config: Record<string, any>): Promise<{ success: boolean; message: string }> {
+	async testAdapterConnection(
+		adapterId: string,
+		config: Record<string, any>
+	): Promise<{ success: boolean; message: string }> {
 		return this.request<{ success: boolean; message: string }>('/workflows/test-connection', {
 			method: 'POST',
 			body: JSON.stringify({ adapter_id: adapterId, config })
 		});
 	}
-	async saveAdapterConfig(adapterId: string, config: Record<string, any>): Promise<{ status: string; message: string }> {
+	async saveAdapterConfig(
+		adapterId: string,
+		config: Record<string, any>
+	): Promise<{ status: string; message: string }> {
 		this.invalidateCache('workflows');
-		return this.request<{ status: string; message: string }>(`/workflows/adapters/${adapterId}/config`, {
-			method: 'POST',
-			body: JSON.stringify({ config })
-		});
+		return this.request<{ status: string; message: string }>(
+			`/workflows/adapters/${adapterId}/config`,
+			{
+				method: 'POST',
+				body: JSON.stringify({ config })
+			}
+		);
 	}
 
 	// --- Template CRUD ---
 	async listTemplates(): Promise<TemplateOut[]> {
 		return this.request<TemplateOut[]>('/templates');
 	}
-	async createTemplate(payload: { name: string; description?: string; format?: string; schema_definition?: Record<string, any>; is_default?: boolean }): Promise<TemplateOut> {
-		return this.request<TemplateOut>('/templates', { method: 'POST', body: JSON.stringify(payload) });
+	async createTemplate(payload: {
+		name: string;
+		description?: string;
+		format?: string;
+		schema_definition?: Record<string, any>;
+		is_default?: boolean;
+	}): Promise<TemplateOut> {
+		return this.request<TemplateOut>('/templates', {
+			method: 'POST',
+			body: JSON.stringify(payload)
+		});
 	}
 	async getTemplate(id: string): Promise<TemplateOut> {
 		return this.request<TemplateOut>(`/templates/${id}`);
 	}
-	async updateTemplate(id: string, payload: Partial<{ name: string; description: string; format: string; schema_definition: Record<string, any>; is_default: boolean }>): Promise<TemplateOut> {
-		return this.request<TemplateOut>(`/templates/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+	async updateTemplate(
+		id: string,
+		payload: Partial<{
+			name: string;
+			description: string;
+			format: string;
+			schema_definition: Record<string, any>;
+			is_default: boolean;
+		}>
+	): Promise<TemplateOut> {
+		return this.request<TemplateOut>(`/templates/${id}`, {
+			method: 'PUT',
+			body: JSON.stringify(payload)
+		});
 	}
 	async deleteTemplate(id: string): Promise<void> {
 		await this.request<void>(`/templates/${id}`, { method: 'DELETE' });
 	}
-	async previewTemplate(schemaDefinition: Record<string, any>, sampleData?: Record<string, any>[], title?: string): Promise<string> {
+	async previewTemplate(
+		schemaDefinition: Record<string, any>,
+		sampleData?: Record<string, any>[],
+		title?: string
+	): Promise<string> {
 		const url = `${this.baseUrl}/templates/preview`;
 		const res = await fetch(url, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ schema_definition: schemaDefinition, sample_data: sampleData || [], title: title || 'Sample Orbit Mission Briefing' })
+			body: JSON.stringify({
+				schema_definition: schemaDefinition,
+				sample_data: sampleData || [],
+				title: title || 'Sample Orbit Mission Briefing'
+			})
 		});
 		if (!res.ok) throw new Error(`HTTP ${res.status}`);
 		return res.text();

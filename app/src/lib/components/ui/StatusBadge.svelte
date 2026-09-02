@@ -2,7 +2,16 @@
 	import { CheckCircle2, AlertTriangle, XCircle, Clock, PauseCircle, Play } from '@lucide/svelte';
 
 	interface Props {
-		status: 'completed' | 'success' | 'running' | 'warning' | 'error' | 'failed' | 'paused' | 'pending' | string;
+		status:
+			| 'completed'
+			| 'success'
+			| 'running'
+			| 'warning'
+			| 'error'
+			| 'failed'
+			| 'paused'
+			| 'pending'
+			| string;
 		label?: string;
 		showIcon?: boolean;
 		size?: 'sm' | 'md';
@@ -12,11 +21,17 @@
 	let { status, label, showIcon = true, size = 'sm', pulse = false }: Props = $props();
 
 	const normalizedStatus = $derived(
-		['success', 'completed'].includes(status) ? 'success' :
-		['running'].includes(status) ? 'running' :
-		['warning', 'partial'].includes(status) ? 'warning' :
-		['error', 'failed'].includes(status) ? 'error' :
-		['paused'].includes(status) ? 'paused' : 'pending'
+		['success', 'completed'].includes(status)
+			? 'success'
+			: ['running'].includes(status)
+				? 'running'
+				: ['warning', 'partial'].includes(status)
+					? 'warning'
+					: ['error', 'failed'].includes(status)
+						? 'error'
+						: ['paused'].includes(status)
+							? 'paused'
+							: 'pending'
 	);
 
 	const displayText = $derived(label || status.toUpperCase());
@@ -37,7 +52,9 @@
 </script>
 
 <span
-	class="inline-flex items-center font-mono font-medium rounded-full border backdrop-blur-md transition-all duration-150 {statusClasses[normalizedStatus]} {sizeClasses[size]} {pulse || normalizedStatus === 'running' ? 'animate-pulse' : ''}"
+	class="inline-flex items-center font-mono font-medium rounded-full border backdrop-blur-md transition-all duration-150 {statusClasses[
+		normalizedStatus
+	]} {sizeClasses[size]} {pulse || normalizedStatus === 'running' ? 'animate-pulse' : ''}"
 >
 	{#if showIcon}
 		{#if normalizedStatus === 'success'}

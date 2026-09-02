@@ -1,5 +1,19 @@
 <script lang="ts">
-	import { Play, Search, Globe, FileText, Database, ShieldCheck, Cloud, MessageSquare, Mail, Sparkles, Trash2, GripVertical, CheckCircle2 } from '@lucide/svelte';
+	import {
+		Play,
+		Search,
+		Globe,
+		FileText,
+		Database,
+		ShieldCheck,
+		Cloud,
+		MessageSquare,
+		Mail,
+		Sparkles,
+		Trash2,
+		GripVertical,
+		CheckCircle2
+	} from '@lucide/svelte';
 	import type { WorkflowNodeData } from './types';
 
 	interface Props {
@@ -79,12 +93,16 @@
 
 		<div class="flex items-center gap-1.5">
 			{#if isConfigured}
-				<span class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+				<span
+					class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 flex items-center gap-1"
+				>
 					<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
 					Configured
 				</span>
 			{:else}
-				<span class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-surface-800 text-slate-400 border border-white/5">
+				<span
+					class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-surface-800 text-slate-400 border border-white/5"
+				>
 					{node.category}
 				</span>
 			{/if}
@@ -105,7 +123,9 @@
 
 	<!-- Content -->
 	<div>
-		<div class="text-xs font-semibold text-slate-100 group-hover:text-orbit-cyan transition-colors truncate">
+		<div
+			class="text-xs font-semibold text-slate-100 group-hover:text-orbit-cyan transition-colors truncate"
+		>
 			{node.label}
 		</div>
 		<div class="text-[11px] font-mono text-slate-400 line-clamp-1 mt-0.5">{node.description}</div>

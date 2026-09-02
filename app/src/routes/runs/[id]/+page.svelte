@@ -41,7 +41,8 @@
 				try {
 					const data = await api.getRun(id);
 					run = data;
-				} catch {} finally {
+				} catch {
+				} finally {
 					loading = false;
 				}
 			}
@@ -89,12 +90,17 @@
 		{loading}
 		{rerunning}
 		onRefresh={loadRunDetails}
-		onOpenLogs={() => { selectedNode = 'all'; drawerOpen = true; }}
+		onOpenLogs={() => {
+			selectedNode = 'all';
+			drawerOpen = true;
+		}}
 		onRerun={handleRerun}
 	/>
 
 	{#if loading && !run}
-		<div class="text-center py-16 font-mono text-slate-400 text-sm animate-pulse">Connecting to Orbit stream...</div>
+		<div class="text-center py-16 font-mono text-slate-400 text-sm animate-pulse">
+			Connecting to Orbit stream...
+		</div>
 	{:else if run}
 		<div class="bg-surface-900 border border-white/10 rounded-xl p-4 sm:p-5 space-y-4 shadow-2xl">
 			<RunTelemetryStats {run} />
@@ -102,16 +108,44 @@
 		</div>
 
 		<div class="flex items-center gap-2 border-b border-white/10 pb-2 overflow-x-auto">
-			<button type="button" onclick={() => (activeTab = 'live')} class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono transition-all {activeTab === 'live' ? 'bg-orbit-cyan/20 text-orbit-cyan border border-orbit-cyan/40 font-semibold' : 'text-slate-400 hover:text-slate-200'}">
+			<button
+				type="button"
+				onclick={() => (activeTab = 'live')}
+				class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono transition-all {activeTab ===
+				'live'
+					? 'bg-orbit-cyan/20 text-orbit-cyan border border-orbit-cyan/40 font-semibold'
+					: 'text-slate-400 hover:text-slate-200'}"
+			>
 				<Terminal size={14} /><span>Live Build Log</span>
 			</button>
-			<button type="button" onclick={() => (activeTab = 'data')} class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono transition-all {activeTab === 'data' ? 'bg-orbit-cyan/20 text-orbit-cyan border border-orbit-cyan/40 font-semibold' : 'text-slate-400 hover:text-slate-200'}">
+			<button
+				type="button"
+				onclick={() => (activeTab = 'data')}
+				class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono transition-all {activeTab ===
+				'data'
+					? 'bg-orbit-cyan/20 text-orbit-cyan border border-orbit-cyan/40 font-semibold'
+					: 'text-slate-400 hover:text-slate-200'}"
+			>
 				<Database size={14} /><span>Records ({run.results?.length || 0})</span>
 			</button>
-			<button type="button" onclick={() => (activeTab = 'report')} class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono transition-all {activeTab === 'report' ? 'bg-orbit-cyan/20 text-orbit-cyan border border-orbit-cyan/40 font-semibold' : 'text-slate-400 hover:text-slate-200'}">
+			<button
+				type="button"
+				onclick={() => (activeTab = 'report')}
+				class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono transition-all {activeTab ===
+				'report'
+					? 'bg-orbit-cyan/20 text-orbit-cyan border border-orbit-cyan/40 font-semibold'
+					: 'text-slate-400 hover:text-slate-200'}"
+			>
 				<FileText size={14} /><span>PDF Report & Redactions</span>
 			</button>
-			<button type="button" onclick={() => (activeTab = 'dag')} class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono transition-all {activeTab === 'dag' ? 'bg-orbit-cyan/20 text-orbit-cyan border border-orbit-cyan/40 font-semibold' : 'text-slate-400 hover:text-slate-200'}">
+			<button
+				type="button"
+				onclick={() => (activeTab = 'dag')}
+				class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono transition-all {activeTab ===
+				'dag'
+					? 'bg-orbit-cyan/20 text-orbit-cyan border border-orbit-cyan/40 font-semibold'
+					: 'text-slate-400 hover:text-slate-200'}"
+			>
 				<GitFork size={14} /><span>Provenance DAG</span>
 			</button>
 		</div>
@@ -124,11 +158,23 @@
 			<InteractiveReportViewer {run} />
 		{:else if activeTab === 'dag'}
 			<div class="bg-surface-900 border border-white/10 rounded-xl p-4 space-y-2">
-				<ProvenanceGraph {run} onSelectNode={(id) => { selectedNode = id; drawerOpen = true; }} {selectedNode} />
+				<ProvenanceGraph
+					{run}
+					onSelectNode={(id) => {
+						selectedNode = id;
+						drawerOpen = true;
+					}}
+					{selectedNode}
+				/>
 			</div>
 		{/if}
 
-		<LogDrawer open={drawerOpen} {run} activeNode={selectedNode} onClose={() => (drawerOpen = false)} />
+		<LogDrawer
+			open={drawerOpen}
+			{run}
+			activeNode={selectedNode}
+			onClose={() => (drawerOpen = false)}
+		/>
 	{:else}
 		<div class="text-center py-16 text-rose-400 font-mono text-sm">Run telemetry not found.</div>
 	{/if}

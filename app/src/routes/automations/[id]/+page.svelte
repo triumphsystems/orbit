@@ -39,7 +39,11 @@
 
 	async function handleDelete() {
 		if (!autoId) return;
-		if (confirm('Are you sure you want to terminate and delete this automation and all its run history?')) {
+		if (
+			confirm(
+				'Are you sure you want to terminate and delete this automation and all its run history?'
+			)
+		) {
 			deleting = true;
 			try {
 				await orbitStore.deleteAutomation(autoId);
@@ -55,7 +59,10 @@
 <div class="max-w-6xl mx-auto space-y-8">
 	<!-- Top Navigation Bar with Actions -->
 	<div class="flex items-center justify-between">
-		<a href="/automations" class="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-orbit-cyan transition-colors">
+		<a
+			href="/automations"
+			class="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-orbit-cyan transition-colors"
+		>
 			<ArrowLeft size={14} />
 			<span>Back to Automation Fleet</span>
 		</a>
@@ -79,17 +86,11 @@
 		</div>
 	{:else if automation}
 		<!-- Automation Plan View -->
-		<PlanPreviewCard
-			{automation}
-			onRunNow={handleRunNow}
-			running={orbitStore.runningAutomation}
-		/>
+		<PlanPreviewCard {automation} onRunNow={handleRunNow} running={orbitStore.runningAutomation} />
 
 		<!-- Execution History -->
 		<RunsHistoryTable {runs} />
 	{:else}
-		<div class="text-center py-16 text-rose-400 font-mono text-sm">
-			Automation not found.
-		</div>
+		<div class="text-center py-16 text-rose-400 font-mono text-sm">Automation not found.</div>
 	{/if}
 </div>

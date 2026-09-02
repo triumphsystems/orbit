@@ -27,7 +27,9 @@
 	}: Props = $props();
 </script>
 
-<div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-surface-900 border border-white/10 p-3 rounded-xl">
+<div
+	class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-surface-900 border border-white/10 p-3 rounded-xl"
+>
 	<!-- Search & Filters -->
 	<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1">
 		<div class="relative flex-1 min-w-0">
@@ -42,25 +44,33 @@
 		</div>
 
 		<!-- Filter Pills -->
-		<div class="flex items-center gap-1 bg-surface-800 p-0.5 rounded-lg border border-white/5 font-mono text-xs overflow-x-auto">
+		<div
+			class="flex items-center gap-1 bg-surface-800 p-0.5 rounded-lg border border-white/5 font-mono text-xs overflow-x-auto"
+		>
 			<button
 				type="button"
 				onclick={() => onFilterChange('all')}
-				class="px-2.5 py-1 rounded-md transition-colors whitespace-nowrap {filterMode === 'all' ? 'bg-surface-700 text-white font-medium' : 'text-slate-400 hover:text-slate-200'}"
+				class="px-2.5 py-1 rounded-md transition-colors whitespace-nowrap {filterMode === 'all'
+					? 'bg-surface-700 text-white font-medium'
+					: 'text-slate-400 hover:text-slate-200'}"
 			>
 				All ({totalCount})
 			</button>
 			<button
 				type="button"
 				onclick={() => onFilterChange('valid')}
-				class="px-2.5 py-1 rounded-md transition-colors whitespace-nowrap {filterMode === 'valid' ? 'bg-emerald-950/80 text-emerald-400 font-medium' : 'text-slate-400 hover:text-slate-200'}"
+				class="px-2.5 py-1 rounded-md transition-colors whitespace-nowrap {filterMode === 'valid'
+					? 'bg-emerald-950/80 text-emerald-400 font-medium'
+					: 'text-slate-400 hover:text-slate-200'}"
 			>
 				Valid ({validCount})
 			</button>
 			<button
 				type="button"
 				onclick={() => onFilterChange('anomaly')}
-				class="px-2.5 py-1 rounded-md transition-colors whitespace-nowrap {filterMode === 'anomaly' ? 'bg-rose-950/80 text-rose-400 font-medium' : 'text-slate-400 hover:text-slate-200'}"
+				class="px-2.5 py-1 rounded-md transition-colors whitespace-nowrap {filterMode === 'anomaly'
+					? 'bg-rose-950/80 text-rose-400 font-medium'
+					: 'text-slate-400 hover:text-slate-200'}"
 			>
 				Anomalies ({anomalyCount})
 			</button>

@@ -14,14 +14,18 @@
 	let { automation, running = false, onRun, onDelete }: Props = $props();
 </script>
 
-<div class="bg-surface-900 border border-white/10 rounded-xl p-4 space-y-3 hover:border-white/20 transition-colors shadow-lg">
+<div
+	class="bg-surface-900 border border-white/10 rounded-xl p-4 space-y-3 hover:border-white/20 transition-colors shadow-lg"
+>
 	<div class="flex items-center justify-between gap-2">
 		<div class="flex items-center gap-2 min-w-0">
 			<StatusBadge
 				status={automation.active ? 'success' : 'paused'}
 				label={automation.active ? 'ACTIVE' : 'PAUSED'}
 			/>
-			<span class="px-2 py-0.5 rounded text-[10px] uppercase font-mono bg-surface-800 text-orbit-violet border border-orbit-violet/30 truncate max-w-[110px]">
+			<span
+				class="px-2 py-0.5 rounded text-[10px] uppercase font-mono bg-surface-800 text-orbit-violet border border-orbit-violet/30 truncate max-w-[110px]"
+			>
 				{automation.plan?.domain || 'GENERAL'}
 			</span>
 		</div>
@@ -48,12 +52,7 @@
 			{new Date(automation.created_at).toLocaleDateString()}
 		</span>
 		<div class="flex items-center gap-2">
-			<Button
-				variant="primary"
-				size="sm"
-				onclick={() => onRun(automation.id)}
-				loading={running}
-			>
+			<Button variant="primary" size="sm" onclick={() => onRun(automation.id)} loading={running}>
 				<Play size={12} />
 				<span>Run</span>
 			</Button>

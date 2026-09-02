@@ -1,5 +1,14 @@
 <script lang="ts">
-	import { CheckCircle2, Clock, BrainCircuit, Search, Globe, Database, ShieldCheck, Bell } from '@lucide/svelte';
+	import {
+		CheckCircle2,
+		Clock,
+		BrainCircuit,
+		Search,
+		Globe,
+		Database,
+		ShieldCheck,
+		Bell
+	} from '@lucide/svelte';
 	import type { RunOut } from '$lib/api/types';
 
 	interface Props {
@@ -56,10 +65,23 @@
 
 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
 	{#each steps as step}
-		<div class="p-3 rounded-xl border transition-all text-left flex flex-col justify-between space-y-2 {step.done ? 'bg-emerald-950/20 border-emerald-500/30' : step.active ? 'bg-surface-850 border-orbit-cyan/60 animate-pulse shadow-glow-cyan/20' : 'bg-surface-900/60 border-white/5 opacity-60'}">
+		<div
+			class="p-3 rounded-xl border transition-all text-left flex flex-col justify-between space-y-2 {step.done
+				? 'bg-emerald-950/20 border-emerald-500/30'
+				: step.active
+					? 'bg-surface-850 border-orbit-cyan/60 animate-pulse shadow-glow-cyan/20'
+					: 'bg-surface-900/60 border-white/5 opacity-60'}"
+		>
 			<div class="flex items-center justify-between">
 				<div class="p-1.5 rounded-lg bg-surface-800 text-slate-300">
-					<step.icon size={14} class={step.done ? 'text-emerald-400' : step.active ? 'text-orbit-cyan' : 'text-slate-500'} />
+					<step.icon
+						size={14}
+						class={step.done
+							? 'text-emerald-400'
+							: step.active
+								? 'text-orbit-cyan'
+								: 'text-slate-500'}
+					/>
 				</div>
 				{#if step.done}
 					<CheckCircle2 size={14} class="text-emerald-400" />

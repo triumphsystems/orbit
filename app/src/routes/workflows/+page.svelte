@@ -15,9 +15,15 @@
 		calculateNextPosition,
 		fetchInitialWorkflowNodes
 	} from '$lib/components/workflow/workflowLoader';
-	import type { WorkflowNodeData, WorkflowEdge, NodeTemplate } from '$lib/components/workflow/types';
+	import type {
+		WorkflowNodeData,
+		WorkflowEdge,
+		NodeTemplate
+	} from '$lib/components/workflow/types';
 
-	let nodes = $state<WorkflowNodeData[]>(getLocalNodes() || JSON.parse(JSON.stringify(defaultTriggerNode)));
+	let nodes = $state<WorkflowNodeData[]>(
+		getLocalNodes() || JSON.parse(JSON.stringify(defaultTriggerNode))
+	);
 	let selectedNode = $state<WorkflowNodeData | null>(null);
 	let paletteOpen = $state(true);
 	let deploying = $state(false);
@@ -26,7 +32,13 @@
 	let deployMessage = $state<string | null>(null);
 
 	const edges = $derived<WorkflowEdge[]>(
-		nodes.slice(0, -1).map((node, i) => ({ id: `edge_${node.id}_${nodes[i + 1].id}`, from: node.id, to: nodes[i + 1].id }))
+		nodes
+			.slice(0, -1)
+			.map((node, i) => ({
+				id: `edge_${node.id}_${nodes[i + 1].id}`,
+				from: node.id,
+				to: nodes[i + 1].id
+			}))
 	);
 
 	async function loadTopology() {
@@ -122,7 +134,10 @@
 				onTogglePalette={() => (paletteOpen = !paletteOpen)}
 				onSelectNode={(n) => (selectedNode = n)}
 				onDeleteNode={handleDeleteNode}
-				onDropNewNode={(template, x, y) => { nodes.push(createNodeFromTemplate(template, x, y)); persistLocalNodes(nodes); }}
+				onDropNewNode={(template, x, y) => {
+					nodes.push(createNodeFromTemplate(template, x, y));
+					persistLocalNodes(nodes);
+				}}
 				onUpdateNodePosition={handleUpdatePosition}
 			/>
 		</div>

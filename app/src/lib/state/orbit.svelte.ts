@@ -9,7 +9,7 @@ export class OrbitStore {
 	runsHistory = $state<RunOut[]>([]);
 	health = $state<HealthStatus | null>(null);
 	daemonConnected = $state<boolean>(false);
-	
+
 	loading = $state<boolean>(false);
 	interpretingGoal = $state<boolean>(false);
 	runningAutomation = $state<boolean>(false);
@@ -101,7 +101,8 @@ export class OrbitStore {
 							this.selectedAutomation = res;
 							resolve(res);
 						} catch (fallbackErr: any) {
-							this.errorMessage = fallbackErr.message || err?.message || 'Goal interpretation failed';
+							this.errorMessage =
+								fallbackErr.message || err?.message || 'Goal interpretation failed';
 							resolve(null);
 						} finally {
 							this.interpretingGoal = false;

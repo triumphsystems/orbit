@@ -16,7 +16,17 @@
 		onUpdateNodePosition: (id: string, x: number, y: number) => void;
 	}
 
-	let { nodes, edges, selectedNode, paletteOpen = true, onTogglePalette, onSelectNode, onDeleteNode, onDropNewNode, onUpdateNodePosition }: Props = $props();
+	let {
+		nodes,
+		edges,
+		selectedNode,
+		paletteOpen = true,
+		onTogglePalette,
+		onSelectNode,
+		onDeleteNode,
+		onDropNewNode,
+		onUpdateNodePosition
+	}: Props = $props();
 
 	let canvasEl: HTMLDivElement;
 	let draggingNodeId = $state<string | null>(null);
@@ -63,7 +73,9 @@
 	}
 </script>
 
-<div class="w-full overflow-x-auto overflow-y-hidden rounded-2xl border border-white/10 shadow-2xl backdrop-blur-md custom-scrollbar touch-pan-x">
+<div
+	class="w-full overflow-x-auto overflow-y-hidden rounded-2xl border border-white/10 shadow-2xl backdrop-blur-md custom-scrollbar touch-pan-x"
+>
 	<div
 		bind:this={canvasEl}
 		ondragover={handleDragOver}
@@ -72,7 +84,9 @@
 		aria-label="Workflow Canvas"
 		class="relative min-w-[780px] lg:min-w-full min-h-[520px] h-[520px] lg:min-h-[640px] lg:h-[640px] bg-surface-950/90 select-none overflow-hidden"
 	>
-		<div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
+		<div
+			class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"
+		></div>
 
 		<!-- Floating In-Canvas Open Library Dock Button -->
 		{#if !paletteOpen && onTogglePalette}

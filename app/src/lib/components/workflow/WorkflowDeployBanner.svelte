@@ -10,7 +10,9 @@
 </script>
 
 {#if message}
-	<div class="p-3 rounded-xl border bg-emerald-950/40 border-emerald-500/30 text-emerald-300 flex items-center justify-between text-xs font-mono animate-in fade-in duration-200">
+	<div
+		class="p-3 rounded-xl border bg-emerald-950/40 border-emerald-500/30 text-emerald-300 flex items-center justify-between text-xs font-mono animate-in fade-in duration-200"
+	>
 		<div class="flex items-center gap-2">
 			<CheckCircle2 size={15} class="text-emerald-400 shrink-0" />
 			<span>{message}</span>

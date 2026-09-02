@@ -31,19 +31,28 @@
 
 <Card class="space-y-6 border-orbit-cyan/30 shadow-glow-cyan/10">
 	<!-- Header -->
-	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+	<div
+		class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-4"
+	>
 		<div>
 			<div class="flex items-center gap-2 mb-1 flex-wrap">
-				<span class="px-2 py-0.5 rounded text-[11px] font-mono uppercase bg-orbit-cyan/20 text-orbit-cyan border border-orbit-cyan/30 font-semibold">
+				<span
+					class="px-2 py-0.5 rounded text-[11px] font-mono uppercase bg-orbit-cyan/20 text-orbit-cyan border border-orbit-cyan/30 font-semibold"
+				>
 					{plan.domain || 'GENERAL'} DOMAIN
 				</span>
 				{#if plan.geography}
-					<span class="px-2 py-0.5 rounded text-[11px] font-mono bg-surface-700 text-slate-300 border border-white/10 flex items-center gap-1">
-						<Globe size={11} /> {plan.geography}
+					<span
+						class="px-2 py-0.5 rounded text-[11px] font-mono bg-surface-700 text-slate-300 border border-white/10 flex items-center gap-1"
+					>
+						<Globe size={11} />
+						{plan.geography}
 					</span>
 				{/if}
 			</div>
-			<h2 class="text-base sm:text-lg font-semibold text-slate-50 font-display">{plan.objective}</h2>
+			<h2 class="text-base sm:text-lg font-semibold text-slate-50 font-display">
+				{plan.objective}
+			</h2>
 			<p class="text-xs text-slate-400 font-mono mt-1">Goal: "{automation.raw_goal}"</p>
 		</div>
 
@@ -93,7 +102,9 @@
 			<div class="flex items-center gap-2">
 				<span class="text-sm font-semibold text-slate-100 uppercase">{plan.frequency}</span>
 				{#if plan.schedule_time}
-					<span class="text-xs font-mono text-slate-400">@ {plan.schedule_time} ({plan.timezone})</span>
+					<span class="text-xs font-mono text-slate-400"
+						>@ {plan.schedule_time} ({plan.timezone})</span
+					>
 				{/if}
 			</div>
 		</div>
@@ -104,7 +115,9 @@
 				<Search size={13} class="text-orbit-cyan" />
 				<span>Discovery Query</span>
 			</div>
-			<div class="text-xs font-mono text-slate-200 truncate bg-surface-900 px-2.5 py-1 rounded border border-white/5">
+			<div
+				class="text-xs font-mono text-slate-200 truncate bg-surface-900 px-2.5 py-1 rounded border border-white/5"
+			>
 				{plan.search_query}
 			</div>
 		</div>
@@ -115,11 +128,15 @@
 
 	<!-- Condition Triggers if present -->
 	{#if plan.condition}
-		<div class="p-3 rounded-lg bg-amber-950/20 border border-amber-500/20 flex items-center justify-between">
+		<div
+			class="p-3 rounded-lg bg-amber-950/20 border border-amber-500/20 flex items-center justify-between"
+		>
 			<div class="flex items-center gap-2">
 				<Bell size={15} class="text-amber-400" />
 				<span class="text-xs text-slate-300">Alert Condition Trigger:</span>
-				<code class="text-xs font-mono px-2 py-0.5 rounded bg-surface-900 text-amber-300 border border-amber-500/30">
+				<code
+					class="text-xs font-mono px-2 py-0.5 rounded bg-surface-900 text-amber-300 border border-amber-500/30"
+				>
 					{plan.condition}
 				</code>
 			</div>

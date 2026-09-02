@@ -15,7 +15,9 @@
 	<td class="py-2.5 px-4 text-center text-slate-500">{index + 1}</td>
 	<td class="py-2.5 px-4">
 		{#if row.valid}
-			<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] bg-emerald-950/50 text-emerald-400 border border-emerald-500/30">
+			<span
+				class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] bg-emerald-950/50 text-emerald-400 border border-emerald-500/30"
+			>
 				<CheckCircle2 size={11} /> PASSED
 			</span>
 		{:else}
@@ -36,7 +38,12 @@
 
 	<td class="py-2.5 px-4 text-slate-400 truncate max-w-xs font-mono text-[11px]">
 		{#if row.url}
-			<a href={row.url} target="_blank" rel="noreferrer" class="hover:text-orbit-cyan hover:underline">
+			<a
+				href={row.url}
+				target="_blank"
+				rel="noreferrer"
+				class="hover:text-orbit-cyan hover:underline"
+			>
 				{row.url}
 			</a>
 		{:else}

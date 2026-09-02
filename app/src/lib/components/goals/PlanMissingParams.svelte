@@ -17,19 +17,27 @@
 		<span>Action Required: Configure Workflow Inputs</span>
 	</div>
 	<p class="text-xs text-slate-300 leading-relaxed">
-		Orbit detected specialized integration steps in your goal. Provide the missing parameters below so Orbit can connect the workflow:
+		Orbit detected specialized integration steps in your goal. Provide the missing parameters below
+		so Orbit can connect the workflow:
 	</p>
 
 	<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
 		{#each parameters as param}
 			<div class="space-y-1">
-				<label for={param.parameter_name} class="text-[11px] font-semibold text-slate-300 font-mono">
+				<label
+					for={param.parameter_name}
+					class="text-[11px] font-semibold text-slate-300 font-mono"
+				>
 					{param.label}
 					{#if param.required}<span class="text-rose-400">*</span>{/if}
 				</label>
 				<p class="text-[10px] text-slate-400 font-mono">{param.prompt}</p>
 				<input
-					type={param.parameter_name.includes('url') || param.parameter_name.includes('key') || param.parameter_name.includes('secret') ? 'password' : 'text'}
+					type={param.parameter_name.includes('url') ||
+					param.parameter_name.includes('key') ||
+					param.parameter_name.includes('secret')
+						? 'password'
+						: 'text'}
 					id={param.parameter_name}
 					bind:value={userInputs[param.parameter_name]}
 					placeholder={param.default_value || `Enter ${param.label.toLowerCase()}...`}

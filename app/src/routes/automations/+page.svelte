@@ -41,14 +41,17 @@
 
 <div class="max-w-6xl mx-auto space-y-4 sm:space-y-6">
 	<!-- Desktop Header -->
-	<div class="hidden sm:flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+	<div
+		class="hidden sm:flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+	>
 		<div>
 			<h1 class="text-2xl font-bold text-slate-100 flex items-center gap-2 font-display">
 				<Layers size={22} class="text-orbit-cyan" />
 				<span>Automation Fleet</span>
 			</h1>
 			<p class="text-xs text-slate-400 font-sans mt-1">
-				Your active automated data pipelines. Monitor recurring data extraction schedules, inspect data schemas, and execute runs on demand.
+				Your active automated data pipelines. Monitor recurring data extraction schedules, inspect
+				data schemas, and execute runs on demand.
 			</p>
 		</div>
 
@@ -61,7 +64,9 @@
 	</div>
 
 	<!-- Filter & Search Bar (with inline New Mission button on mobile) -->
-	<div class="flex items-center gap-2 sm:gap-3 bg-surface-900 border border-white/10 p-2.5 sm:p-3 rounded-xl">
+	<div
+		class="flex items-center gap-2 sm:gap-3 bg-surface-900 border border-white/10 p-2.5 sm:p-3 rounded-xl"
+	>
 		<div class="relative flex-1 min-w-0">
 			<Search size={14} class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
 			<input
@@ -100,7 +105,9 @@
 				onDelete={handleDelete}
 			/>
 		{:else}
-			<div class="border border-white/10 rounded-xl p-8 text-center bg-surface-900 text-slate-500 font-mono text-xs">
+			<div
+				class="border border-white/10 rounded-xl p-8 text-center bg-surface-900 text-slate-500 font-mono text-xs"
+			>
 				No matching automations found.
 			</div>
 		{/each}

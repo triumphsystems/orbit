@@ -91,7 +91,12 @@
 					<!-- Subtle pulse radar wave on probe -->
 					<circle cx="92" cy="50" r="7" stroke="#00F2FE" stroke-width="1" opacity="0.4">
 						<animate attributeName="r" values="4;9;4" dur="2.5s" repeatCount="indefinite" />
-						<animate attributeName="opacity" values="0.8;0;0.8" dur="2.5s" repeatCount="indefinite" />
+						<animate
+							attributeName="opacity"
+							values="0.8;0;0.8"
+							dur="2.5s"
+							repeatCount="indefinite"
+						/>
 					</circle>
 				{/if}
 			</g>

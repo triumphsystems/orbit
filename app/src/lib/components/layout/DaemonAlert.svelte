@@ -6,11 +6,15 @@
 </script>
 
 {#if !orbitStore.daemonConnected && !dismissed}
-	<div class="bg-rose-950/90 border-b border-rose-500/20 px-4 sm:px-6 py-2.5 text-xs flex items-center gap-3">
+	<div
+		class="bg-rose-950/90 border-b border-rose-500/20 px-4 sm:px-6 py-2.5 text-xs flex items-center gap-3"
+	>
 		<ShieldAlert size={14} class="text-rose-400 shrink-0" />
 		<span class="text-rose-200 flex-1 min-w-0">
 			<strong class="font-semibold text-rose-300">Daemon unreachable.</strong>
-			<span class="hidden sm:inline"> The Orbit core service is offline — automations will not run.</span>
+			<span class="hidden sm:inline">
+				The Orbit core service is offline — automations will not run.</span
+			>
 		</span>
 		<div class="flex items-center gap-2 shrink-0">
 			<button

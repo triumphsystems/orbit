@@ -11,7 +11,14 @@
 		onRerun?: () => void;
 	}
 
-	let { automationId, loading, rerunning = false, onRefresh, onOpenLogs, onRerun }: Props = $props();
+	let {
+		automationId,
+		loading,
+		rerunning = false,
+		onRefresh,
+		onOpenLogs,
+		onRerun
+	}: Props = $props();
 </script>
 
 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -33,7 +40,13 @@
 			<span>Audit Logs</span>
 		</Button>
 		{#if onRerun}
-			<Button variant="primary" size="sm" loading={rerunning} disabled={!automationId} onclick={onRerun}>
+			<Button
+				variant="primary"
+				size="sm"
+				loading={rerunning}
+				disabled={!automationId}
+				onclick={onRerun}
+			>
 				<Play size={13} />
 				<span>Rerun</span>
 			</Button>
