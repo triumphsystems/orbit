@@ -1,5 +1,6 @@
 import { PUBLIC_API_URL } from '$env/static/public';
-import type { AutomationListOut, AutomationOut, GoalRequest, HealthStatus, RunOut } from './types';
+import type { AutomationListOut, AutomationOut, GoalRequest, HealthStatus, ResultOut, RunOut } from './types';
+export type { ResultOut };
 
 export interface TemplateOut {
 	id: string;

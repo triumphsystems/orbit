@@ -1,4 +1,13 @@
+import pytest
 from core.security.vault import SecretVault
+
+
+@pytest.fixture(autouse=True)
+def setup_vault_key(monkeypatch):
+    monkeypatch.setenv("ORBIT_SECRET_KEY", "test-secret-key-for-vault-encryption-32bytes")
+    SecretVault._cipher = None
+    yield
+    SecretVault._cipher = None
 
 
 def test_secret_masking():

@@ -6,12 +6,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Domain-agnostic application and pipeline settings."""
 
-    model_config = SettingsConfigDict(env_file=(".env", "core/.env"), extra="ignore")
+    model_config = SettingsConfigDict(env_file=(".env"), extra="ignore")
 
     app_env: str = "development"
     app_port: int = 8000
     log_level: str = "INFO"
-    orbit_secret_key: str = "change-this-to-a-secure-random-32-byte-hex-string"
+    orbit_secret_key: str = ""
     allowed_origins: str = ""
 
     # LLM Engine
@@ -81,4 +81,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-
