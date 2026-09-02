@@ -180,10 +180,13 @@ class RateLimiterFactory:
     @classmethod
     def get_limiter(cls, settings: Settings | None = None) -> DomainRateLimiter:
         cfg = settings or get_settings()
-        backend = (cfg.event_broker_backend or "memory").strip().lower()
+        cache_backend = (cfg.cache_backend or "").strip().lower()
+        broker_backend = (cfg.event_broker_backend or "").strip().lower()
         prefix = cfg.broker_key_prefix or "orb"
 
-        if backend == "redis":
-            return RedisDomainRateLimiter(broker_url=cfg.broker_url, prefix=prefix)
+        if cache_backend == "redis" or broker_backend == "redis":
+            redis_url = cfg.cache_url if cache_backend == "redis" else cfg.broker_url
+            return RedisDomainRateLimiter(broker_url=redis_url, prefix=prefix)
 
         return InMemoryDomainRateLimiter(prefix=prefix)
+

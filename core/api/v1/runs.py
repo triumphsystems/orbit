@@ -175,7 +175,7 @@ def get_run_dossier(run_id: str, request: Request, db: Annotated[Session, Depend
     """Streams the generated and redacted PDF/HTML report dossier with RFC 7234 ETag caching."""
     run = resolve_entity_by_id_or_prefix(db, Run, run_id, "run")
 
-    updated_ts = int(run.finished_at.timestamp() if run.finished_at else (run.created_at.timestamp() if run.created_at else 0))
+    updated_ts = int(run.finished_at.timestamp() if run.finished_at else (run.started_at.timestamp() if run.started_at else 0))
     etag = f'W/"{run.id[:12]}-{updated_ts}"'
 
     headers = {

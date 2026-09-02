@@ -128,7 +128,7 @@ async def test_proxy_retrieval_with_cache_hit():
 
 
 def test_factories_swappable():
-    cfg_mem = Settings(event_broker_backend="memory", broker_key_prefix="orb")
+    cfg_mem = Settings(event_broker_backend="memory", cache_backend="memory", broker_key_prefix="orb")
     limiter_mem = RateLimiterFactory.get_limiter(cfg_mem)
     cache_mem = PageCacheFactory.get_cache(cfg_mem)
     assert isinstance(limiter_mem, InMemoryDomainRateLimiter)
@@ -139,3 +139,8 @@ def test_factories_swappable():
     cache_redis = PageCacheFactory.get_cache(cfg_redis)
     assert isinstance(limiter_redis, RedisDomainRateLimiter)
     assert isinstance(cache_redis, RedisPageCache)
+
+    cfg_cache_redis = Settings(cache_backend="redis", broker_key_prefix="orb")
+    limiter_cache_redis = RateLimiterFactory.get_limiter(cfg_cache_redis)
+    assert isinstance(limiter_cache_redis, RedisDomainRateLimiter)
+

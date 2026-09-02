@@ -10,10 +10,16 @@ from core.models.execution_plan import ExecutionPlan
 class LLMExtractor:
     """Schema-driven LLM extraction that adapts to any entity schema."""
 
-    llm: LLMClient
+    _llm: LLMClient | None
 
     def __init__(self, llm_client: LLMClient | None = None):
-        self.llm = llm_client or get_llm_client()
+        self._llm = llm_client
+
+    @property
+    def llm(self) -> LLMClient:
+        if self._llm is None:
+            self._llm = get_llm_client()
+        return self._llm
 
     async def extract(
         self, url: str, content: str, plan: ExecutionPlan

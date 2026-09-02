@@ -34,10 +34,10 @@ def calculate_next_run(
             pass
 
     if frequency == Frequency.hourly:
-        next_dt = now_tz.replace(minute=target_minute, second=0, microsecond=0) + timedelta(hours=1)
-        if next_dt <= now_tz:
-            next_dt += timedelta(hours=1)
-        return next_dt.astimezone(timezone.utc)
+        candidate = now_tz.replace(minute=target_minute, second=0, microsecond=0)
+        if candidate <= now_tz:
+            candidate += timedelta(hours=1)
+        return candidate.astimezone(timezone.utc)
 
     elif frequency == Frequency.daily:
         candidate = now_tz.replace(hour=target_hour, minute=target_minute, second=0, microsecond=0)
@@ -47,11 +47,18 @@ def calculate_next_run(
 
     elif frequency == Frequency.weekly:
         candidate = now_tz.replace(hour=target_hour, minute=target_minute, second=0, microsecond=0)
-        candidate += timedelta(days=(7 - candidate.weekday()))
+        if candidate <= now_tz:
+            candidate += timedelta(days=7)
         return candidate.astimezone(timezone.utc)
 
     elif frequency == Frequency.monthly:
-        candidate = now_tz.replace(hour=target_hour, minute=target_minute, second=0, microsecond=0) + timedelta(days=30)
+        import calendar
+        candidate = now_tz.replace(hour=target_hour, minute=target_minute, second=0, microsecond=0)
+        if candidate <= now_tz:
+            year = candidate.year + (candidate.month // 12)
+            month = (candidate.month % 12) + 1
+            max_day = calendar.monthrange(year, month)[1]
+            candidate = candidate.replace(year=year, month=month, day=min(candidate.day, max_day))
         return candidate.astimezone(timezone.utc)
 
     return (now_tz + timedelta(days=1)).astimezone(timezone.utc)

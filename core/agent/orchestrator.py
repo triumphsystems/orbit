@@ -130,17 +130,16 @@ class AgentOrchestrator:
         self.db_sink = db_sink or DatabaseExportSink()
 
     def _safe_commit(self, db: Session) -> None:
-        """Safely commits changes with retry on dropped or timed-out idle database connections."""
+        """Commits changes with defensive rollback and logging on database errors."""
         try:
             db.commit()
-        except (OperationalError, DBAPIError):
-            logger.warning("Database connection was interrupted during async task. Reconnecting...")
+        except (OperationalError, DBAPIError) as e:
+            logger.error("Database operational error encountered during commit: %s. Rolling back.", e)
             try:
                 db.rollback()
-                db.commit()
             except Exception:
-                logger.error("Database commit retry failed.")
-                raise
+                pass
+            raise
 
     async def execute_run(
         self,
@@ -260,6 +259,14 @@ class AgentOrchestrator:
                     run.status = RunStatus.failed
                     run.error = "Discovery failed: no relevant web sources could be identified after multiple self-healing attempts."
                     run.finished_at = datetime.now(timezone.utc)
+                    if automation.active and plan.frequency != Frequency.once and not automation.next_run_at:
+                        next_run = calculate_next_run(
+                            frequency=plan.frequency,
+                            schedule_time=plan.schedule_time,
+                            tz_name=plan.timezone,
+                        )
+                        if next_run:
+                            automation.next_run_at = next_run
                     self._safe_commit(db)
                     await event_bus.publish(
                         OrbitEvent(
@@ -631,10 +638,25 @@ class AgentOrchestrator:
                 run.error = sanitize_error_message(str(e))
                 run.finished_at = datetime.now(timezone.utc)
                 db.add(run)
+
+                # Ensure recurring automations are not permanently descheduled on unexpected failure
+                if automation.active and plan.frequency != Frequency.once and not automation.next_run_at:
+                    next_run = calculate_next_run(
+                        frequency=plan.frequency,
+                        schedule_time=plan.schedule_time,
+                        tz_name=plan.timezone,
+                    )
+                    if next_run:
+                        automation.next_run_at = next_run
+                        db.add(automation)
+
                 db.commit()
             except Exception as persist_err:
                 logger.exception(f"Failed to persist run failure state: {persist_err}")
-                db.rollback()
+                try:
+                    db.rollback()
+                except Exception:
+                    pass
             return run
 
     def _get_previous_run_records(

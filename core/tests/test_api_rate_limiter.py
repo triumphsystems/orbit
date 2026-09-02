@@ -1,17 +1,21 @@
-﻿import asyncio
+import asyncio
 import pytest
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 
 from core.api.rate_limiter import APIRateLimiter, rate_limit
-from core.config.settings import Settings
+from core.config.settings import Settings, get_settings
 
 
 @pytest.fixture(autouse=True)
-def reset_rate_limiter():
+def reset_rate_limiter(monkeypatch):
+    monkeypatch.setenv("CACHE_BACKEND", "memory")
+    get_settings.cache_clear()
     APIRateLimiter.reset()
     yield
     APIRateLimiter.reset()
+    get_settings.cache_clear()
+
 
 
 @pytest.mark.asyncio
@@ -95,3 +99,78 @@ def test_api_rate_limit_endpoint_integration():
         # Different client IP is still allowed
         res_other = client.post("/test-goal", headers={"X-Forwarded-For": "198.51.100.22"})
         assert res_other.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_redis_api_rate_limiter_success():
+    from unittest.mock import AsyncMock, MagicMock
+
+    mock_redis = MagicMock()
+    # Simulate return from Lua: [allowed, remaining, retry_after]
+    mock_redis.eval = AsyncMock(side_effect=[
+        [1, 2, 0],
+        [1, 1, 0],
+        [1, 0, 0],
+        [0, 0, 45],
+    ])
+
+    APIRateLimiter.set_redis_client(mock_redis)
+    cfg = Settings(cache_backend="redis", broker_key_prefix="orb")
+
+    # First request
+    allowed, remaining, retry_after = await APIRateLimiter.check(
+        client_id="192.168.1.1",
+        resource_key="test_res",
+        limit=3,
+        window_seconds=60,
+        settings=cfg,
+    )
+    assert allowed is True
+    assert remaining == 2
+    assert retry_after == 0
+    assert mock_redis.eval.call_count == 1
+
+    # Fourth request: rejected
+    for _ in range(2):
+        await APIRateLimiter.check(
+            client_id="192.168.1.1",
+            resource_key="test_res",
+            limit=3,
+            window_seconds=60,
+            settings=cfg,
+        )
+
+    allowed_blocked, rem, retry = await APIRateLimiter.check(
+        client_id="192.168.1.1",
+        resource_key="test_res",
+        limit=3,
+        window_seconds=60,
+        settings=cfg,
+    )
+    assert allowed_blocked is False
+    assert rem == 0
+    assert retry == 45
+
+
+@pytest.mark.asyncio
+async def test_redis_api_rate_limiter_exception_fallback():
+    from unittest.mock import AsyncMock, MagicMock
+
+    mock_redis = MagicMock()
+    mock_redis.eval = AsyncMock(side_effect=ConnectionError("Redis connection lost"))
+
+    APIRateLimiter.set_redis_client(mock_redis)
+    cfg = Settings(cache_backend="redis", broker_key_prefix="orb")
+
+    # Should not raise; should log warning and seamlessly fall back to in-memory
+    allowed, remaining, retry_after = await APIRateLimiter.check(
+        client_id="192.168.1.200",
+        resource_key="fallback_res",
+        limit=2,
+        window_seconds=60,
+        settings=cfg,
+    )
+    assert allowed is True
+    assert remaining == 1
+    assert retry_after == 0
+
