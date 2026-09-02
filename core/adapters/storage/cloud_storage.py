@@ -120,11 +120,15 @@ class CloudStorageSink:
 
         return f"s3://{self.bucket_name}/{key}"
 
+    def _write_local_file(self, path: Path, content: bytes) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
+
     async def _upload_local(self, key: str, content: bytes) -> str:
-        """Saves file to local exports directory."""
+        """Saves file to local exports directory without blocking the async event loop."""
+        import asyncio
         export_path = Path("exports") / key
-        export_path.parent.mkdir(parents=True, exist_ok=True)
-        export_path.write_bytes(content)
+        await asyncio.to_thread(self._write_local_file, export_path, content)
         logger.info("Saved export locally to %s", export_path)
         return str(export_path)
 

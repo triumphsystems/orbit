@@ -38,7 +38,6 @@ class RunPoolManager:
     """Manages the global bounded concurrency pool for active mission executions (Layer 3 Protection)."""
 
     _semaphore: ClassVar[asyncio.Semaphore | None] = None
-    _active_count: ClassVar[int] = 0
     _active_run_ids: ClassVar[set[str]] = set()
 
     @classmethod
@@ -55,7 +54,7 @@ class RunPoolManager:
 
     @classmethod
     def get_active_count(cls) -> int:
-        return cls._active_count
+        return len(cls._active_run_ids)
 
     @classmethod
     def is_run_active(cls, run_id: str) -> bool:
@@ -191,13 +190,11 @@ class AgentOrchestrator:
             )
 
         async with sem:
-            RunPoolManager._active_count += 1
             RunPoolManager.mark_active(run.id)
             try:
                 return await self._execute_run_internal(db, automation, run, plan, resume)
             finally:
                 RunPoolManager.mark_inactive(run.id)
-                RunPoolManager._active_count = max(0, RunPoolManager._active_count - 1)
 
     async def _execute_run_internal(
         self,

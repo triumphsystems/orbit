@@ -4,6 +4,7 @@ import os
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from core.agent.orchestrator import AgentOrchestrator, RunPoolManager
@@ -188,8 +189,7 @@ def get_run_dossier(run_id: str, request: Request, db: Annotated[Session, Depend
 
     pdf_path = os.path.join("exports", run.automation_id, run.id, "dossier.pdf")
     if os.path.exists(pdf_path):
-        with open(pdf_path, "rb") as f:
-            return Response(content=f.read(), media_type="application/pdf", headers=headers)
+        return FileResponse(pdf_path, media_type="application/pdf", headers=headers)
 
     # Generate interactive HTML fallback if PDF file is not on local disk
     html_report = f"""
@@ -244,8 +244,20 @@ async def retry_run(run_id: str, db: Annotated[Session, Depends(get_db)]):
 
 
 @router.get("/automations/{automation_id}/runs", response_model=list[RunOut])
-def list_automation_runs(automation_id: str, db: Annotated[Session, Depends(get_db)]):
-    """Lists past execution history for a given automation."""
+def list_automation_runs(
+    automation_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    limit: int = 50,
+    offset: int = 0,
+):
+    """Lists past execution history for a given automation with pagination support."""
     automation = resolve_entity_by_id_or_prefix(db, Automation, automation_id, "automation")
-    runs = db.query(Run).filter(Run.automation_id == automation.id).order_by(Run.started_at.desc()).all()
+    runs = (
+        db.query(Run)
+        .filter(Run.automation_id == automation.id)
+        .order_by(Run.started_at.desc())
+        .offset(offset)
+        .limit(min(max(1, limit), 100))
+        .all()
+    )
     return [run_to_out(r) for r in runs]
