@@ -11,6 +11,7 @@ import uuid
 import httpx
 
 from core.config.settings import get_settings
+from core.utils.security import validate_url_target
 
 logger = logging.getLogger("core.adapters.communication.webhook")
 
@@ -43,8 +44,9 @@ class WebhookAdapter:
         max_retries: int = 3,
         backoff_factor: float = 0.5,
     ):
+        settings = get_settings()
         self.webhook_url = webhook_url or ""
-        self.signing_secret = signing_secret or "orbit-webhook-secret-key"
+        self.signing_secret = signing_secret or settings.orbit_secret_key
         self.custom_headers = custom_headers or {}
         self.signature_header = signature_header
         self.timeout_sec = timeout_sec
@@ -68,6 +70,14 @@ class WebhookAdapter:
         url = target_url or self.webhook_url
         if not url:
             logger.warning("Webhook dispatch skipped: No webhook URL configured.")
+            return False
+
+        # SSRF Protection
+        settings = get_settings()
+        allow_private = settings.app_env.lower() not in ("production", "prod", "staging")
+        is_safe, reason = validate_url_target(url, allow_private=allow_private)
+        if not is_safe:
+            logger.warning("Webhook dispatch blocked by SSRF protection: %s (%s)", url, reason)
             return False
 
         timestamp = int(time.time())
@@ -156,7 +166,8 @@ class WebhookAdapter:
         if not url:
             return False, "Webhook URL is not configured."
 
-        ping_data = {"diagnostic": "connectivity_probe", "sent_at": datetime.utcnow().isoformat()}
+        from datetime import timezone
+        ping_data = {"diagnostic": "connectivity_probe", "sent_at": datetime.now(timezone.utc).isoformat()}
         success = await self.send_event("orbit.ping", ping_data, target_url=url)
         if success:
             return True, f"Webhook endpoint '{url}' reached and acknowledged successfully."

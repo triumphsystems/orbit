@@ -1,3 +1,4 @@
+import html
 import json
 import logging
 from typing import Annotated, Any
@@ -7,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from core.api.dependencies import get_db, resolve_entity_by_id_or_prefix
 from core.db.orm import Template
+from core.utils.security import sanitize_css_color
 
 logger = logging.getLogger("core.api.v1.templates")
 
@@ -160,21 +162,27 @@ def render_template_preview(payload: TemplatePreviewRequest):
         {"title": "Sample Fellowship B", "amount": "$12,500", "deadline": "2026-10-15", "status": "verified"},
     ]
 
-    header_title = schema.get("title") or payload.title
-    theme_color = schema.get("theme_color") or "#00F2FE"
-    bg_color = schema.get("background_color") or "#090d16"
-    text_color = schema.get("text_color") or "#e2e8f0"
+    header_title = html.escape(str(schema.get("title") or payload.title))
+    theme_color = sanitize_css_color(schema.get("theme_color"), default="#00F2FE")
+    bg_color = sanitize_css_color(schema.get("background_color"), default="#090d16")
+    text_color = sanitize_css_color(schema.get("text_color"), default="#e2e8f0")
     show_summary = schema.get("show_summary", True)
-    columns = schema.get("columns") or ["title", "amount", "deadline", "status"]
+    columns = [str(col) for col in (schema.get("columns") or ["title", "amount", "deadline", "status"])]
 
-    table_headers = "".join(f"<th style='padding:8px 12px;text-align:left;border:1px solid #1e293b;background:#141b2d;'>{col.replace('_', ' ').title()}</th>" for col in columns)
-    
+    table_headers = "".join(
+        f"<th style='padding:8px 12px;text-align:left;border:1px solid #1e293b;background:#141b2d;'>{html.escape(col.replace('_', ' ').title())}</th>"
+        for col in columns
+    )
+
     table_rows = ""
     for r in sample_records:
-        cells = "".join(f"<td style='padding:8px 12px;border:1px solid #1e293b;'>{r.get(col, 'N/A')}</td>" for col in columns)
+        cells = "".join(
+            f"<td style='padding:8px 12px;border:1px solid #1e293b;'>{html.escape(str(r.get(col, 'N/A')))}</td>"
+            for col in columns
+        )
         table_rows += f"<tr>{cells}</tr>"
 
-    html = f"""<!DOCTYPE html>
+    html_content = f"""<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><title>{header_title}</title>
 <style>
@@ -194,4 +202,4 @@ table {{ width: 100%; border-collapse: collapse; margin-top: 1rem; font-family: 
 </div>
 </body></html>"""
 
-    return Response(content=html.encode("utf-8"), media_type="text/html")
+    return Response(content=html_content.encode("utf-8"), media_type="text/html")

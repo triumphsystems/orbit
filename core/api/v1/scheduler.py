@@ -1,9 +1,10 @@
 import asyncio
+import hmac
 import logging
 from datetime import datetime, timezone
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from core.agent.orchestrator import AgentOrchestrator
@@ -20,31 +21,45 @@ orchestrator = AgentOrchestrator()
 
 
 def verify_scheduler_auth(
+    request: Request,
     x_scheduler_secret: str | None = Header(None, alias="X-Scheduler-Secret"),
     authorization: str | None = Header(None, alias="Authorization"),
 ):
     """Provider-agnostic authentication verifying Cloud Schedulers (GCP, AWS, Render, GitHub, etc.)."""
     settings = get_settings()
-    configured_secret = settings.scheduler_secret
+    configured_secret = (settings.scheduler_secret or "").strip()
 
-    # If no secret is configured on the server, open access is allowed
-    if not configured_secret:
-        return True
-
-    # Check X-Scheduler-Secret header
-    if x_scheduler_secret and x_scheduler_secret == configured_secret:
-        return True
-
-    # Check Bearer token in Authorization header
-    if authorization:
-        token = authorization.replace("Bearer ", "").strip()
-        if token == configured_secret:
+    # If secret is configured, require exact timing-safe match
+    if configured_secret:
+        if x_scheduler_secret and hmac.compare_digest(x_scheduler_secret.strip(), configured_secret):
             return True
 
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Unauthorized: invalid or missing scheduler secret header.",
-    )
+        if authorization:
+            token = authorization.replace("Bearer ", "").replace("bearer ", "").strip()
+            if hmac.compare_digest(token, configured_secret):
+                return True
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized: invalid or missing scheduler secret header.",
+        )
+
+    # In production environments, unauthenticated access is strictly forbidden
+    if settings.app_env.lower() in ("production", "prod", "staging"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized: SCHEDULER_SECRET must be configured in production to trigger scheduled automations.",
+        )
+
+    # In local development / testing, only allow local loopback / test requests
+    client_host = request.client.host if request.client else "127.0.0.1"
+    if client_host not in ("127.0.0.1", "localhost", "testclient", "::1"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized: SCHEDULER_SECRET is required for non-local access.",
+        )
+
+    return True
 
 
 @router.post("/trigger-due", summary="Trigger all due automations (Cloud Scheduler Hook)")

@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     app_port: int = 8000
     log_level: str = "INFO"
     orbit_secret_key: str = "change-this-to-a-secure-random-32-byte-hex-string"
+    allowed_origins: str = ""
 
     # LLM Engine
     llm_provider: str = "gemini"

@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 import time
 from collections import defaultdict
 from collections.abc import Callable
@@ -17,6 +17,12 @@ class APIRateLimiter:
 
     _requests: ClassVar[dict[str, list[float]]] = defaultdict(list)
     _lock: ClassVar[asyncio.Lock | None] = None
+    TRUSTED_PROXIES: ClassVar[set[str]] = {
+        "127.0.0.1",
+        "::1",
+        "localhost",
+        "testclient",
+    }
 
     @classmethod
     def _get_lock(cls) -> asyncio.Lock:
@@ -26,16 +32,28 @@ class APIRateLimiter:
 
     @classmethod
     def get_client_ip(cls, request: Request) -> str:
-        """Extracts the real client IP address respecting reverse proxies and Cloudflare."""
-        forwarded = request.headers.get("X-Forwarded-For")
-        if forwarded:
-            return forwarded.split(",")[0].strip()
-        real_ip = request.headers.get("X-Real-IP")
-        if real_ip:
-            return real_ip.strip()
-        if request.client and request.client.host:
-            return request.client.host
-        return "127.0.0.1"
+        """Extracts the client IP address, honoring proxy headers only when received from trusted upstream proxies."""
+        direct_host = request.client.host if request.client and request.client.host else "127.0.0.1"
+
+        # Check if direct connecting host is a trusted upstream proxy or local container network
+        is_trusted = (
+            direct_host in cls.TRUSTED_PROXIES
+            or direct_host.startswith("10.")
+            or direct_host.startswith("172.16.")
+            or direct_host.startswith("192.168.")
+        )
+        if is_trusted:
+            cf_ip = request.headers.get("CF-Connecting-IP")
+            if cf_ip:
+                return cf_ip.strip()
+            forwarded = request.headers.get("X-Forwarded-For")
+            if forwarded:
+                return forwarded.split(",")[0].strip()
+            real_ip = request.headers.get("X-Real-IP")
+            if real_ip:
+                return real_ip.strip()
+
+        return direct_host
 
     @classmethod
     async def check(
@@ -54,12 +72,16 @@ class APIRateLimiter:
         bucket_key = f"{client_id}:{resource_key}"
 
         async with cls._get_lock():
-            # Filter out timestamps outside the active sliding window
-            cls._requests[bucket_key] = [
-                ts for ts in cls._requests[bucket_key] if ts > window_start
+            # Filter out timestamps outside the active sliding window and purge stale entries to avoid leaks
+            active_ts = [
+                ts for ts in cls._requests.get(bucket_key, []) if ts > window_start
             ]
+            if not active_ts and bucket_key in cls._requests:
+                del cls._requests[bucket_key]
+            elif active_ts:
+                cls._requests[bucket_key] = active_ts
 
-            current_count = len(cls._requests[bucket_key])
+            current_count = len(cls._requests.get(bucket_key, []))
             if current_count >= limit:
                 oldest_ts = cls._requests[bucket_key][0]
                 retry_after = max(1, int(window_seconds - (now - oldest_ts)))

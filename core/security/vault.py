@@ -5,20 +5,23 @@ import os
 
 from cryptography.fernet import Fernet, InvalidToken
 
+from core.config.settings import get_settings
+
 logger = logging.getLogger("core.security.vault")
 
 
 class SecretVault:
     """Enterprise secret encryption, decryption, and masking utility."""
 
-    _cipher: Fernet
+    _cipher: Fernet | None = None
 
     @classmethod
     def _get_cipher(cls) -> Fernet:
-        if not hasattr(cls, "_cipher") or getattr(cls, "_cipher", None) is None:
-            raw_key = os.getenv("ORBIT_SECRET_KEY")
+        if cls._cipher is None:
+            settings = get_settings()
+            raw_key = os.getenv("ORBIT_SECRET_KEY") or settings.orbit_secret_key
             if not raw_key:
-                raise ValueError("ORBIT_SECRET_KEY environment variable must be configured.")
+                raise ValueError("ORBIT_SECRET_KEY must be configured in settings or environment.")
             derived_key = base64.urlsafe_b64encode(hashlib.sha256(raw_key.encode()).digest())
             cls._cipher = Fernet(derived_key)
         return cls._cipher
@@ -41,8 +44,8 @@ class SecretVault:
             cipher = cls._get_cipher()
             return cipher.encrypt(plain_text.encode("utf-8")).decode("utf-8")
         except Exception as e:
-            logger.warning(f"Secret encryption failed: {e}")
-            return plain_text
+            logger.error(f"Secret encryption failed: {e}")
+            raise RuntimeError(f"Failed to encrypt sensitive secret: {e}") from e
 
     @classmethod
     def decrypt_secret(cls, cipher_text: str | None) -> str:
@@ -52,6 +55,9 @@ class SecretVault:
         try:
             cipher = cls._get_cipher()
             return cipher.decrypt(cipher_text.encode("utf-8")).decode("utf-8")
-        except (InvalidToken, Exception):
-            # If not a valid Fernet token, return raw (e.g. unencrypted fallback)
+        except InvalidToken:
+            # Fallback for unencrypted legacy secrets
+            return cipher_text
+        except Exception as e:
+            logger.warning(f"Secret decryption failed: {e}")
             return cipher_text
