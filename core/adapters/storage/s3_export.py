@@ -3,7 +3,7 @@ import logging
 from typing import Any
 import httpx
 
-from core.utils.security import generate_aws_s3_presigned_url, sign_aws_s3_request
+from core.utils.security import generate_s3_presigned_url, sign_s3_request
 
 logger = logging.getLogger("core.adapters.storage.s3_export")
 
@@ -59,7 +59,7 @@ class S3ExportSink:
     async def _put_object(self, key: str, body: bytes, content_type: str) -> None:
         """Internal HTTP PUT dispatcher for S3-compatible REST endpoints with SigV4 signing."""
         if self.access_key and self.secret_key:
-            url, headers = sign_aws_s3_request(
+            url, headers = sign_s3_request(
                 method="PUT",
                 endpoint_url=self.endpoint_url,
                 bucket=self.bucket_name,
@@ -83,7 +83,7 @@ class S3ExportSink:
         """Generates an authenticated SigV4 presigned download link for the dossier."""
         key = f"{automation_id[:8]}/{run_id[:8]}/{filename}"
         if self.access_key and self.secret_key:
-            return generate_aws_s3_presigned_url(
+            return generate_s3_presigned_url(
                 endpoint_url=self.endpoint_url,
                 bucket=self.bucket_name,
                 key=key,

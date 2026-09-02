@@ -54,7 +54,7 @@ th {{ background: #e2e8f0; }}
         if not self.api_key:
             return html.encode("utf-8")
 
-        # Support both https://api.nutrient.io and custom endpoint URLs
+        # Support both standard endpoint and custom endpoint URLs
         base = self.base_url.rstrip("/")
         url = f"{base}/build" if not base.endswith("/build") else base
         headers = {"Authorization": f"Bearer {self.api_key}"}

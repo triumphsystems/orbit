@@ -26,14 +26,22 @@ class SecretVault:
             cls._cipher = Fernet(derived_key)
         return cls._cipher
 
+    MASK_BULLET: str = "•"
+    MASK_PLACEHOLDER: str = "••••"
+
+    @classmethod
+    def is_masked(cls, secret: str | None) -> bool:
+        """Checks if a secret contains masked placeholder bullets or is empty."""
+        return not secret or cls.MASK_PLACEHOLDER in str(secret)
+
     @classmethod
     def mask_secret(cls, secret: str | None) -> str:
         """Masks sensitive credentials e.g. '••••••••3f8a'."""
         if not secret:
             return ""
         if len(secret) <= 6:
-            return "••••••••"
-        return f"••••••••{secret[-4:]}"
+            return cls.MASK_PLACEHOLDER + cls.MASK_PLACEHOLDER
+        return f"{cls.MASK_PLACEHOLDER}{cls.MASK_PLACEHOLDER}{secret[-4:]}"
 
     @classmethod
     def encrypt_secret(cls, plain_text: str | None) -> str:

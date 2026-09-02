@@ -6,7 +6,7 @@ from typing import Any
 import httpx
 
 from core.config.settings import get_settings
-from core.utils.security import sign_aws_s3_request
+from core.utils.security import sign_s3_request
 
 logger = logging.getLogger("core.adapters.storage.cloud_storage")
 
@@ -97,7 +97,7 @@ class CloudStorageSink:
     async def _upload_s3(self, key: str, content: bytes, content_type: str) -> str:
         """Uploads object to S3-compatible cloud storage with SigV4 signing."""
         if self.access_key and self.secret_key:
-            target_url, headers = sign_aws_s3_request(
+            target_url, headers = sign_s3_request(
                 method="PUT",
                 endpoint_url=self.endpoint_url,
                 bucket=self.bucket_name,

@@ -104,9 +104,9 @@ class WorkflowService:
                     "recipient_email": "team@company.com",
                     "notify_on_anomaly": True,
                     "sender_address": s.email_sender_address or "Orbit Alerts <alerts@orbit.dev>",
-                    "smtp_host": "smtp.mailgun.org",
+                    "smtp_host": "smtp.example.com",
                     "smtp_port": 587,
-                    "smtp_username": "postmaster@company.com",
+                    "smtp_username": "alerts@company.com",
                     "smtp_password": "",
                     "use_tls": True,
                     "api_key": SecretVault.mask_secret(s.email_api_key),
@@ -144,16 +144,39 @@ class WorkflowService:
         return res
 
     @classmethod
+    def _resolve_secret(
+        cls,
+        adapter_id: str,
+        submitted_val: Any,
+        field_keys: str | tuple[str, ...],
+        daemon_fallback: str | None = None,
+    ) -> str:
+        """
+        Resolves unmasked credential value from submitted input, saved custom configs,
+        or daemon environment fallback.
+        """
+        if submitted_val and not SecretVault.is_masked(str(submitted_val)):
+            return str(submitted_val).strip()
+
+        saved_cfg = cls._custom_adapter_configs.get(str(adapter_id), {})
+        if isinstance(field_keys, str):
+            field_keys = (field_keys,)
+
+        for key in field_keys:
+            saved_val = saved_cfg.get(key)
+            if saved_val and not SecretVault.is_masked(str(saved_val)):
+                return str(saved_val).strip()
+
+        return (daemon_fallback or "").strip()
+
+    @classmethod
     async def _execute_adapter_probe(cls, adapter_id: str, config: dict[str, Any]) -> tuple[bool, str]:
         """Executes adapter probe dispatch without logging raw secrets."""
         clean_id = str(adapter_id).lower()
         try:
             # 0. LLM Schema Extraction
             if any(k in clean_id for k in ("llm", "schema_extractor", "extraction", "schema")) or clean_id == "5":
-                api_key = config.get("api_key") or ""
-                if "\u2022\u2022\u2022\u2022" in api_key or not api_key:
-                    saved_key = cls._custom_adapter_configs.get(str(adapter_id), {}).get("api_key")
-                    api_key = saved_key if saved_key and "\u2022\u2022\u2022\u2022" not in saved_key else get_settings().llm_api_key
+                api_key = cls._resolve_secret(adapter_id, config.get("api_key"), "api_key", get_settings().llm_api_key)
                 if not api_key:
                     return False, "LLM API key is not configured. Set LLM_API_KEY in environment settings."
                 return True, f"LLM extraction engine reachable. Model: {config.get('model') or get_settings().llm_model}"
@@ -164,10 +187,7 @@ class WorkflowService:
 
             # 0c. Format Normalization & OCR
             if any(k in clean_id for k in ("format_converter", "ocr", "format_normal", "converter")) or clean_id == "4":
-                api_key = config.get("api_key") or ""
-                if "\u2022\u2022\u2022\u2022" in api_key or not api_key:
-                    saved_key = cls._custom_adapter_configs.get(str(adapter_id), {}).get("api_key")
-                    api_key = saved_key if saved_key and "\u2022\u2022\u2022\u2022" not in saved_key else get_settings().document_converter_api_key
+                api_key = cls._resolve_secret(adapter_id, config.get("api_key"), "api_key", get_settings().document_converter_api_key)
                 if not api_key:
                     return False, "Document Converter API key is not configured. Set DOCUMENT_CONVERTER_API_KEY to enable OCR and format normalization."
                 base_url = (config.get("base_url") or get_settings().document_converter_base_url).rstrip("/")
@@ -182,10 +202,12 @@ class WorkflowService:
 
             # 0d. PDF Report Generator / HTML Dossier / PII Redactor / Template Generator
             if any(k in clean_id for k in ("html_dossier", "pdf_report", "dossier", "pii_redactor", "redactor", "template_generator", "template")) or clean_id in ("6",):
-                api_key = config.get("api_key") or ""
-                if "\u2022\u2022\u2022\u2022" in api_key or not api_key:
-                    saved_key = cls._custom_adapter_configs.get(str(adapter_id), {}).get("api_key")
-                    api_key = saved_key if saved_key and "\u2022\u2022\u2022\u2022" not in saved_key else (get_settings().document_dossier_api_key or get_settings().document_template_api_key or get_settings().document_redactor_api_key)
+                dossier_fallback = (
+                    get_settings().document_dossier_api_key
+                    or get_settings().document_template_api_key
+                    or get_settings().document_redactor_api_key
+                )
+                api_key = cls._resolve_secret(adapter_id, config.get("api_key"), "api_key", dossier_fallback)
                 if not api_key:
                     return False, "PDF Report Generator API key is not configured. Set DOCUMENT_DOSSIER_API_KEY to enable HTML-to-PDF generation."
                 base_url = (config.get("base_url") or get_settings().document_dossier_base_url).rstrip("/")
@@ -200,10 +222,12 @@ class WorkflowService:
 
             # 1. Database Warehouse Sink
             if any(k in clean_id for k in ("database", "db", "sql", "warehouse", "table")) or clean_id == "8":
-                raw_uri = config.get("connection_uri") or config.get("database_url") or ""
-                if "••••" in raw_uri or not raw_uri:
-                    saved = cls._custom_adapter_configs.get(str(adapter_id), {}).get("connection_uri") or cls._custom_adapter_configs.get(str(adapter_id), {}).get("database_url")
-                    raw_uri = saved if saved and "••••" not in saved else get_settings().database_url
+                raw_uri = cls._resolve_secret(
+                    adapter_id,
+                    config.get("connection_uri") or config.get("database_url"),
+                    ("connection_uri", "database_url"),
+                    get_settings().database_url,
+                )
                 target_tbl = config.get("target_table") or config.get("table_name") or "orbit_extracted_records"
                 sink = DatabaseExportSink(connection_uri=raw_uri, target_table=target_tbl)
                 return sink.test_connection()
@@ -234,11 +258,7 @@ class WorkflowService:
                     host = config.get("smtp_host") or ""
                     port = int(config.get("smtp_port") or 587)
                     username = config.get("smtp_username") or ""
-                    password = config.get("smtp_password") or ""
-                    if "••••" in password:
-                        saved_pw = cls._custom_adapter_configs.get(str(adapter_id), {}).get("smtp_password")
-                        if saved_pw and "••••" not in saved_pw:
-                            password = saved_pw
+                    password = cls._resolve_secret(adapter_id, config.get("smtp_password"), "smtp_password")
                     use_tls = bool(config.get("use_tls", True))
                     return EmailNotificationAdapter.test_smtp_connection(
                         host=host,
@@ -248,10 +268,7 @@ class WorkflowService:
                         use_tls=use_tls,
                     )
                 else:
-                    api_key = config.get("api_key") or ""
-                    if "••••" in api_key or not api_key:
-                        saved_key = cls._custom_adapter_configs.get(str(adapter_id), {}).get("api_key")
-                        api_key = saved_key if saved_key and "••••" not in saved_key else get_settings().email_api_key
+                    api_key = cls._resolve_secret(adapter_id, config.get("api_key"), "api_key", get_settings().email_api_key)
                     cfg_sender = str(config.get("sender_address") or "").strip().strip("'\"")
                     daemon_sender = get_settings().email_sender_address
                     sender = cfg_sender if (cfg_sender and cfg_sender not in ("alerts@company.com", "alerts@yourdomain.com", "alerts@orbit.dev")) else daemon_sender
@@ -270,11 +287,7 @@ class WorkflowService:
             # 3. Slack Notifications
             if any(k in clean_id for k in ("slack", "notify_slack", "slack_alert")) or clean_id == "9":
                 from core.adapters.communication.slack import SlackWebhookAdapter
-                url = str(config.get("webhook_url") or config.get("url") or "").strip().strip("'\"")
-                if "••••" in url or not url:
-                    saved_url = cls._custom_adapter_configs.get(str(adapter_id), {}).get("webhook_url")
-                    if saved_url and "••••" not in saved_url:
-                        url = str(saved_url).strip()
+                url = cls._resolve_secret(adapter_id, config.get("webhook_url") or config.get("url"), ("webhook_url", "url"))
                 if not url:
                     return False, "Slack Webhook URL is not configured in node."
                 adapter = SlackWebhookAdapter(webhook_url=url)
@@ -283,19 +296,16 @@ class WorkflowService:
             # 4. Outbound Signed Webhooks
             if any(k in clean_id for k in ("webhook", "signed_webhook", "webhook_alert", "radio")) or clean_id == "11":
                 from core.adapters.communication.webhook import WebhookAdapter
-                url = str(config.get("webhook_url") or config.get("url") or "").strip().strip("'\"")
-                if "••••" in url or not url:
-                    saved_url = cls._custom_adapter_configs.get(str(adapter_id), {}).get("webhook_url")
-                    if saved_url and "••••" not in saved_url:
-                        url = str(saved_url).strip()
+                url = cls._resolve_secret(adapter_id, config.get("webhook_url") or config.get("url"), ("webhook_url", "url"))
                 if not url:
                     return False, "Webhook URL is not configured in node."
 
-                secret = str(config.get("signing_secret") or config.get("secret") or "orbit-webhook-secret-key").strip().strip("'\"")
-                if "••••" in secret:
-                    saved_sec = cls._custom_adapter_configs.get(str(adapter_id), {}).get("signing_secret")
-                    if saved_sec and "••••" not in saved_sec:
-                        secret = str(saved_sec).strip()
+                secret = cls._resolve_secret(
+                    adapter_id,
+                    config.get("signing_secret") or config.get("secret"),
+                    ("signing_secret", "secret"),
+                    "orbit-webhook-secret-key",
+                )
                 timeout = float(config.get("timeout_sec") or 10.0)
                 adapter = WebhookAdapter(webhook_url=url, signing_secret=secret, timeout_sec=timeout, max_retries=1)
                 return await adapter.test_connection()
@@ -305,17 +315,8 @@ class WorkflowService:
                 b_name = str(config.get("bucket_name") or config.get("bucket") or "orbit-exports").strip()
                 region = str(config.get("region") or "us-east-1").strip()
                 endpoint = config.get("endpoint_url") or config.get("endpoint") or None
-                acc_key = str(config.get("access_key") or config.get("aws_access_key_id") or "").strip()
-                sec_key = str(config.get("secret_key") or config.get("aws_secret_access_key") or "").strip()
-
-                if "••••" in acc_key or not acc_key:
-                    saved_acc = cls._custom_adapter_configs.get(str(adapter_id), {}).get("access_key")
-                    if saved_acc and "••••" not in saved_acc:
-                        acc_key = str(saved_acc).strip()
-                if "••••" in sec_key or not sec_key:
-                    saved_sec = cls._custom_adapter_configs.get(str(adapter_id), {}).get("secret_key")
-                    if saved_sec and "••••" not in saved_sec:
-                        sec_key = str(saved_sec).strip()
+                acc_key = cls._resolve_secret(adapter_id, config.get("access_key") or config.get("aws_access_key_id"), ("access_key", "aws_access_key_id"))
+                sec_key = cls._resolve_secret(adapter_id, config.get("secret_key") or config.get("aws_secret_access_key"), ("secret_key", "aws_secret_access_key"))
 
                 sink = S3ExportSink(
                     bucket_name=b_name,

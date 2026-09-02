@@ -113,7 +113,7 @@ async def safe_redirect_hook(response: httpx.Response, allow_private: bool = Fal
             raise ValueError(f"SSRF protection blocked redirect to: {redirect_url} ({reason})")
 
 
-def sign_aws_s3_request(
+def sign_s3_request(
     method: str,
     endpoint_url: str | None,
     bucket: str,
@@ -124,7 +124,7 @@ def sign_aws_s3_request(
     secret_key: str,
     region: str = "us-east-1",
 ) -> tuple[str, dict[str, str]]:
-    """Computes AWS Signature Version 4 headers for S3 REST API calls."""
+    """Computes S3 Signature Version 4 authentication headers for REST API calls."""
     from datetime import datetime, timezone
     import hashlib
     import hmac
@@ -196,7 +196,7 @@ def sign_aws_s3_request(
     return target_url, headers
 
 
-def generate_aws_s3_presigned_url(
+def generate_s3_presigned_url(
     endpoint_url: str | None,
     bucket: str,
     key: str,
@@ -205,7 +205,7 @@ def generate_aws_s3_presigned_url(
     region: str = "us-east-1",
     expires_seconds: int = 86400,
 ) -> str:
-    """Generates an AWS SigV4 presigned GET URL for secure S3 object downloads."""
+    """Generates an S3 SigV4 presigned GET URL for secure object downloads."""
     from datetime import datetime, timezone
     import hashlib
     import hmac

@@ -27,7 +27,7 @@ class ParsedDocument:
 
 @dataclass
 class DossierPayload:
-    """Payload data used by Nutrient and Foxit generators to compile briefings."""
+    """Payload data used by document and dossier generators to compile briefings."""
 
     automation_id: str
     run_id: str

@@ -13,7 +13,7 @@
 		if (key.includes('url')) return 'https://...';
 		if (key === 'recipient_email') return 'team@company.com';
 		if (key === 'sender_address') return 'alerts@yourdomain.com';
-		if (key === 'smtp_host') return 'smtp.mailgun.org';
+		if (key === 'smtp_host') return 'smtp.example.com';
 		if (key === 'smtp_port') return '587';
 		if (key.includes('table')) return 'orbit_extracted_records';
 		if (key === 'bucket_name') return 'orbit-exports';

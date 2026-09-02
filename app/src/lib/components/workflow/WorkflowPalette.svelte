@@ -147,7 +147,7 @@
 				recipient_email: 'team@company.com',
 				notify_on_anomaly: true,
 				sender_address: 'alerts@company.com',
-				smtp_host: 'smtp.mailgun.org',
+				smtp_host: 'smtp.example.com',
 				smtp_port: 587,
 				smtp_username: '',
 				smtp_password: '',
