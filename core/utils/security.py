@@ -1,4 +1,4 @@
-﻿import ipaddress
+import ipaddress
 import logging
 import re
 import socket
@@ -111,3 +111,154 @@ async def safe_redirect_hook(response: httpx.Response, allow_private: bool = Fal
         valid, reason = validate_url_target(redirect_url, allow_private=allow_private)
         if not valid:
             raise ValueError(f"SSRF protection blocked redirect to: {redirect_url} ({reason})")
+
+
+def sign_aws_s3_request(
+    method: str,
+    endpoint_url: str | None,
+    bucket: str,
+    key: str,
+    body: bytes,
+    content_type: str,
+    access_key: str,
+    secret_key: str,
+    region: str = "us-east-1",
+) -> tuple[str, dict[str, str]]:
+    """Computes AWS Signature Version 4 headers for S3 REST API calls."""
+    from datetime import datetime, timezone
+    import hashlib
+    import hmac
+    import urllib.parse
+
+    now = datetime.now(timezone.utc)
+    amz_date = now.strftime("%Y%m%dT%H%M%SZ")
+    date_stamp = now.strftime("%Y%m%d")
+
+    if endpoint_url:
+        parsed = urllib.parse.urlparse(endpoint_url)
+        host = parsed.netloc
+        canonical_uri = f"/{bucket}/{key}"
+        target_url = f"{endpoint_url.rstrip('/')}/{bucket}/{key}"
+    else:
+        host = f"{bucket}.s3.{region}.amazonaws.com"
+        canonical_uri = f"/{key}"
+        target_url = f"https://{host}/{key}"
+
+    payload_hash = hashlib.sha256(body).hexdigest()
+
+    canonical_headers = (
+        f"content-type:{content_type}\n"
+        f"host:{host}\n"
+        f"x-amz-content-sha256:{payload_hash}\n"
+        f"x-amz-date:{amz_date}\n"
+    )
+    signed_headers = "content-type;host;x-amz-content-sha256;x-amz-date"
+
+    canonical_request = (
+        f"{method.upper()}\n"
+        f"{canonical_uri}\n"
+        f"\n"
+        f"{canonical_headers}\n"
+        f"{signed_headers}\n"
+        f"{payload_hash}"
+    )
+
+    algorithm = "AWS4-HMAC-SHA256"
+    credential_scope = f"{date_stamp}/{region}/s3/aws4_request"
+    string_to_sign = (
+        f"{algorithm}\n"
+        f"{amz_date}\n"
+        f"{credential_scope}\n"
+        f"{hashlib.sha256(canonical_request.encode('utf-8')).hexdigest()}"
+    )
+
+    k_date = hmac.new(("AWS4" + secret_key).encode("utf-8"), date_stamp.encode("utf-8"), hashlib.sha256).digest()
+    k_region = hmac.new(k_date, region.encode("utf-8"), hashlib.sha256).digest()
+    k_service = hmac.new(k_region, b"s3", hashlib.sha256).digest()
+    k_signing = hmac.new(k_service, b"aws4_request", hashlib.sha256).digest()
+    signature = hmac.new(k_signing, string_to_sign.encode("utf-8"), hashlib.sha256).hexdigest()
+
+    authorization_header = (
+        f"{algorithm} "
+        f"Credential={access_key}/{credential_scope}, "
+        f"SignedHeaders={signed_headers}, "
+        f"Signature={signature}"
+    )
+
+    headers = {
+        "Content-Type": content_type,
+        "Host": host,
+        "x-amz-date": amz_date,
+        "x-amz-content-sha256": payload_hash,
+        "Authorization": authorization_header,
+    }
+
+    return target_url, headers
+
+
+def generate_aws_s3_presigned_url(
+    endpoint_url: str | None,
+    bucket: str,
+    key: str,
+    access_key: str,
+    secret_key: str,
+    region: str = "us-east-1",
+    expires_seconds: int = 86400,
+) -> str:
+    """Generates an AWS SigV4 presigned GET URL for secure S3 object downloads."""
+    from datetime import datetime, timezone
+    import hashlib
+    import hmac
+    import urllib.parse
+
+    now = datetime.now(timezone.utc)
+    amz_date = now.strftime("%Y%m%dT%H%M%SZ")
+    date_stamp = now.strftime("%Y%m%d")
+
+    if endpoint_url:
+        parsed = urllib.parse.urlparse(endpoint_url)
+        host = parsed.netloc
+        canonical_uri = f"/{bucket}/{key}"
+        base_url = f"{endpoint_url.rstrip('/')}/{bucket}/{key}"
+    else:
+        host = f"{bucket}.s3.{region}.amazonaws.com"
+        canonical_uri = f"/{key}"
+        base_url = f"https://{host}/{key}"
+
+    credential_scope = f"{date_stamp}/{region}/s3/aws4_request"
+    query_params = {
+        "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
+        "X-Amz-Credential": f"{access_key}/{credential_scope}",
+        "X-Amz-Date": amz_date,
+        "X-Amz-Expires": str(expires_seconds),
+        "X-Amz-SignedHeaders": "host",
+    }
+    canonical_query = urllib.parse.urlencode(sorted(query_params.items()))
+
+    canonical_headers = f"host:{host}\n"
+    signed_headers = "host"
+    payload_hash = "UNSIGNED-PAYLOAD"
+
+    canonical_request = (
+        f"GET\n"
+        f"{canonical_uri}\n"
+        f"{canonical_query}\n"
+        f"{canonical_headers}\n"
+        f"{signed_headers}\n"
+        f"{payload_hash}"
+    )
+
+    string_to_sign = (
+        f"AWS4-HMAC-SHA256\n"
+        f"{amz_date}\n"
+        f"{credential_scope}\n"
+        f"{hashlib.sha256(canonical_request.encode('utf-8')).hexdigest()}"
+    )
+
+    k_date = hmac.new(("AWS4" + secret_key).encode("utf-8"), date_stamp.encode("utf-8"), hashlib.sha256).digest()
+    k_region = hmac.new(k_date, region.encode("utf-8"), hashlib.sha256).digest()
+    k_service = hmac.new(k_region, b"s3", hashlib.sha256).digest()
+    k_signing = hmac.new(k_service, b"aws4_request", hashlib.sha256).digest()
+    signature = hmac.new(k_signing, string_to_sign.encode("utf-8"), hashlib.sha256).hexdigest()
+
+    return f"{base_url}?{canonical_query}&X-Amz-Signature={signature}"

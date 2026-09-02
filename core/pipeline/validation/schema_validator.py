@@ -30,7 +30,8 @@ class SchemaValidator:
                 if field.type == "number":
                     try:
                         num = float(val)
-                        if num < 0:
+                        desc = (field.description or "").lower()
+                        if ("non-negative" in desc or "must be positive" in desc or ">= 0" in desc) and num < 0:
                             errors.append(f"Field '{field.name}' must be non-negative, got {num}")
                     except (ValueError, TypeError):
                         errors.append(f"Field '{field.name}' expected number, got '{val}'")

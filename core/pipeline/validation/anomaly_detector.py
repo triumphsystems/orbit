@@ -74,14 +74,24 @@ class AnomalyDetector:
                 if v is not None and not isinstance(v, bool):
                     try:
                         num = float(v)
-                        if num < median * 0.1:
-                            r.setdefault("anomalies", []).append(
-                                f"Value {num} for '{field_name}' is suspiciously low compared to median {median:.2f}"
-                            )
-                        elif num > median * 10.0:
-                            r.setdefault("anomalies", []).append(
-                                f"Value {num} for '{field_name}' is suspiciously high compared to median {median:.2f}"
-                            )
+                        if median > 0:
+                            if num < median * 0.1:
+                                r.setdefault("anomalies", []).append(
+                                    f"Value {num} for '{field_name}' is suspiciously low compared to median {median:.2f}"
+                                )
+                            elif num > median * 10.0:
+                                r.setdefault("anomalies", []).append(
+                                    f"Value {num} for '{field_name}' is suspiciously high compared to median {median:.2f}"
+                                )
+                        elif median < 0:
+                            if num > median * 0.1:
+                                r.setdefault("anomalies", []).append(
+                                    f"Value {num} for '{field_name}' is suspiciously high compared to median {median:.2f}"
+                                )
+                            elif num < median * 10.0:
+                                r.setdefault("anomalies", []).append(
+                                    f"Value {num} for '{field_name}' is suspiciously low compared to median {median:.2f}"
+                                )
                     except (ValueError, TypeError):
                         pass
 

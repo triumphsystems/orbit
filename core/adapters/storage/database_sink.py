@@ -14,11 +14,14 @@ class DatabaseExportSink:
     """Direct customer data warehouse export sink (PostgreSQL, MySQL, SQLite, Snowflake)."""
 
     def __init__(self, connection_uri: str | None = None, target_table: str | None = None):
-        raw_uri = connection_uri or ""
-        if "••••" in raw_uri or not raw_uri:
-            from core.config.settings import get_settings
-            raw_uri = get_settings().database_url or ""
-        self.connection_uri = SecretVault.decrypt_secret(raw_uri) if raw_uri else ""
+        raw_uri = (connection_uri or "").strip()
+        # Only decrypt if secret is not empty or UI placeholder
+        if raw_uri and "••••" not in raw_uri:
+            self.connection_uri = SecretVault.decrypt_secret(raw_uri)
+        elif raw_uri and "••••" in raw_uri:
+            self.connection_uri = ""
+        else:
+            self.connection_uri = ""
         self.target_table = target_table or "orbit_extracted_records"
 
     def _sanitize_ident(self, name: str) -> str:
@@ -38,13 +41,36 @@ class DatabaseExportSink:
             return True
 
         table_name = self._sanitize_ident(self.target_table)
+        engine = None
         try:
-            engine = create_engine(self.connection_uri, pool_pre_ping=True)
-            metadata = MetaData()
+            connect_args = {"check_same_thread": False} if self.connection_uri.startswith("sqlite") else {}
+            engine = create_engine(self.connection_uri, pool_pre_ping=True, connect_args=connect_args)
 
-            with engine.begin() as conn:
-                # Ensure destination table exists with JSON payload support
-                conn.execute(text(f"""
+            dialect_name = engine.dialect.name.lower()
+            if "sqlite" in dialect_name:
+                ddl = f"""
+                    CREATE TABLE IF NOT EXISTS {table_name} (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        automation_id VARCHAR(64) NOT NULL,
+                        run_id VARCHAR(64) NOT NULL,
+                        source_url TEXT,
+                        data TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """
+            elif "mysql" in dialect_name:
+                ddl = f"""
+                    CREATE TABLE IF NOT EXISTS {table_name} (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        automation_id VARCHAR(64) NOT NULL,
+                        run_id VARCHAR(64) NOT NULL,
+                        source_url TEXT,
+                        data JSON,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """
+            else:
+                ddl = f"""
                     CREATE TABLE IF NOT EXISTS {table_name} (
                         id SERIAL PRIMARY KEY,
                         automation_id VARCHAR(64) NOT NULL,
@@ -53,7 +79,10 @@ class DatabaseExportSink:
                         data JSON,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
-                """))
+                """
+
+            with engine.begin() as conn:
+                conn.execute(text(ddl))
 
                 # Batch insert records
                 insert_stmt = text(f"""
@@ -72,16 +101,24 @@ class DatabaseExportSink:
         except Exception as e:
             logger.warning(f"Data warehouse export failed: {e}")
             return False
+        finally:
+            if engine is not None:
+                engine.dispose()
 
     def test_connection(self) -> tuple[bool, str]:
         """Tests live reachability of the customer data warehouse connection URI."""
         if not self.connection_uri:
             return False, "Data warehouse connection URI is not configured."
+        engine = None
         try:
-            engine = create_engine(self.connection_uri, pool_pre_ping=True)
+            connect_args = {"check_same_thread": False} if self.connection_uri.startswith("sqlite") else {}
+            engine = create_engine(self.connection_uri, pool_pre_ping=True, connect_args=connect_args)
             with engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
             return True, "Data warehouse connection verified successfully."
         except Exception as e:
             logger.error("Data warehouse connection probe failed: %s", e)
             return False, "Could not connect to the database. Please verify your connection URI and server availability."
+        finally:
+            if engine is not None:
+                engine.dispose()

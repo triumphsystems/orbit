@@ -3,6 +3,8 @@ import logging
 from typing import Any
 import httpx
 
+from core.utils.security import generate_aws_s3_presigned_url, sign_aws_s3_request
+
 logger = logging.getLogger("core.adapters.storage.s3_export")
 
 
@@ -55,16 +57,40 @@ class S3ExportSink:
             return False
 
     async def _put_object(self, key: str, body: bytes, content_type: str) -> None:
-        """Internal HTTP PUT dispatcher for S3-compatible REST endpoints."""
-        url = f"{self.endpoint_url or 'https://s3.amazonaws.com'}/{self.bucket_name}/{key}"
-        headers = {"Content-Type": content_type}
+        """Internal HTTP PUT dispatcher for S3-compatible REST endpoints with SigV4 signing."""
+        if self.access_key and self.secret_key:
+            url, headers = sign_aws_s3_request(
+                method="PUT",
+                endpoint_url=self.endpoint_url,
+                bucket=self.bucket_name,
+                key=key,
+                body=body,
+                content_type=content_type,
+                access_key=self.access_key,
+                secret_key=self.secret_key,
+                region=self.region,
+            )
+        else:
+            url = f"{self.endpoint_url or 'https://s3.amazonaws.com'}/{self.bucket_name}/{key}"
+            headers = {"Content-Type": content_type}
+
         async with httpx.AsyncClient(timeout=30.0) as client:
             res = await client.put(url, headers=headers, content=body)
             if res.status_code not in (200, 201):
                 logger.debug(f"S3 PUT {key} status {res.status_code}")
 
     def generate_presigned_url(self, automation_id: str, run_id: str, filename: str = "dossier.pdf") -> str:
-        """Generates a public or presigned download link for the dossier."""
+        """Generates an authenticated SigV4 presigned download link for the dossier."""
+        key = f"{automation_id[:8]}/{run_id[:8]}/{filename}"
+        if self.access_key and self.secret_key:
+            return generate_aws_s3_presigned_url(
+                endpoint_url=self.endpoint_url,
+                bucket=self.bucket_name,
+                key=key,
+                access_key=self.access_key,
+                secret_key=self.secret_key,
+                region=self.region,
+            )
         prefix = f"{automation_id[:8]}/{run_id[:8]}"
         base = self.endpoint_url or f"https://{self.bucket_name}.s3.{self.region}.amazonaws.com"
         return f"{base.rstrip('/')}/{prefix}/{filename}"

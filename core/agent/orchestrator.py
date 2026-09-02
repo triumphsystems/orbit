@@ -609,11 +609,8 @@ class AgentOrchestrator:
             if verification_report.verified:
                 run.status = RunStatus.verified
             else:
-                if valid_count == 0:
-                    run.status = RunStatus.failed
-                    run.error = f"Verification failed: 0 records passed validation. ({verification_report.summary})"
-                else:
-                    run.status = RunStatus.verified
+                run.status = RunStatus.failed
+                run.error = f"Verification failed: {verification_report.summary}"
 
             run.finished_at = datetime.now(timezone.utc)
             self._safe_commit(db)

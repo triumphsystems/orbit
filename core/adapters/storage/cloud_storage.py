@@ -6,6 +6,7 @@ from typing import Any
 import httpx
 
 from core.config.settings import get_settings
+from core.utils.security import sign_aws_s3_request
 
 logger = logging.getLogger("core.adapters.storage.cloud_storage")
 
@@ -94,13 +95,23 @@ class CloudStorageSink:
         return f"gs://{self.bucket_name}/{key}"
 
     async def _upload_s3(self, key: str, content: bytes, content_type: str) -> str:
-        """Uploads object to S3-compatible cloud storage."""
-        base_endpoint = self.endpoint_url or f"https://{self.bucket_name}.s3.{self.region}.amazonaws.com"
-        target_url = f"{base_endpoint.rstrip('/')}/{key}"
-        headers = {"Content-Type": content_type}
-
+        """Uploads object to S3-compatible cloud storage with SigV4 signing."""
         if self.access_key and self.secret_key:
-            headers["x-amz-acl"] = "private"
+            target_url, headers = sign_aws_s3_request(
+                method="PUT",
+                endpoint_url=self.endpoint_url,
+                bucket=self.bucket_name,
+                key=key,
+                body=content,
+                content_type=content_type,
+                access_key=self.access_key,
+                secret_key=self.secret_key,
+                region=self.region,
+            )
+        else:
+            base_endpoint = self.endpoint_url or f"https://{self.bucket_name}.s3.{self.region}.amazonaws.com"
+            target_url = f"{base_endpoint.rstrip('/')}/{key}"
+            headers = {"Content-Type": content_type}
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             res = await client.put(target_url, headers=headers, content=content)
