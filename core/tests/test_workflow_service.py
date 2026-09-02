@@ -21,6 +21,32 @@ def test_get_adapter_topology_modes():
     assert slack_node["mode"] == "custom"
 
 
+def test_resolve_secret_and_masked_placeholders():
+    # 1. Unmasked submitted value is respected
+    val = WorkflowService._resolve_secret("custom_1", "real-api-key-123", "api_key", "daemon-fallback")
+    assert val == "real-api-key-123"
+
+    # 2. Masked submitted value falls back to saved custom config
+    WorkflowService._custom_adapter_configs["custom_1"] = {"api_key": "saved-vault-key-456"}
+    val_saved = WorkflowService._resolve_secret("custom_1", "••••••••1234", "api_key", "daemon-fallback")
+    assert val_saved == "saved-vault-key-456"
+
+    # 3. Unicode bullet placeholder also falls back to saved config
+    val_unicode = WorkflowService._resolve_secret("custom_1", "\u2022\u2022\u2022\u2022", "api_key", "daemon-fallback")
+    assert val_saved == "saved-vault-key-456"
+
+    # 4. Both submitted and saved are masked -> falls back to daemon setting
+    WorkflowService._custom_adapter_configs["custom_2"] = {"api_key": "••••••••"}
+    val_fallback = WorkflowService._resolve_secret("custom_2", "••••••••", "api_key", "daemon-fallback")
+    assert val_fallback == "daemon-fallback"
+
+    # 5. Empty submitted value with tuple of fallback keys
+    WorkflowService._custom_adapter_configs["custom_db"] = {"database_url": "postgresql://usr:pwd@localhost/db"}
+    val_multi = WorkflowService._resolve_secret("custom_db", "", ("connection_uri", "database_url"), "sqlite://")
+    assert val_multi == "postgresql://usr:pwd@localhost/db"
+
+
+
 @pytest.mark.asyncio
 async def test_test_adapter_connection():
     # Test S3 connection probe with mock
