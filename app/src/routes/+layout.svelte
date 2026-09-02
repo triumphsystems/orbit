@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import { onMount } from 'svelte';
-	import { Radio, Layers, Database, GitBranch, Activity, RefreshCw, Menu, PanelLeftClose, PanelLeftOpen } from '@lucide/svelte';
+	import { Radio, Layers, Database, GitBranch, FileText, Activity, RefreshCw, Menu, PanelLeftClose, PanelLeftOpen } from '@lucide/svelte';
 	import { orbitStore } from '$lib/state/orbit.svelte';
 	import DesktopSidebar from '$lib/components/layout/DesktopSidebar.svelte';
 	import MobileNav from '$lib/components/layout/MobileNav.svelte';
@@ -27,7 +27,8 @@
 		{ href: '/', label: 'Overview', shortLabel: 'Overview', icon: Radio },
 		{ href: '/automations', label: 'Automation Fleet', shortLabel: 'Automation', icon: Layers },
 		{ href: '/workflows', label: 'Workflows', shortLabel: 'Workflows', icon: GitBranch },
-		{ href: '/data', label: 'Data Warehouse', shortLabel: 'Warehouse', icon: Database }
+		{ href: '/data', label: 'Data Warehouse', shortLabel: 'Warehouse', icon: Database },
+		{ href: '/templates', label: 'Template Studio', shortLabel: 'Templates', icon: FileText }
 	];
 </script>
 

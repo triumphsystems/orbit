@@ -1,5 +1,16 @@
 import { PUBLIC_API_URL } from '$env/static/public';
 import type { AutomationListOut, AutomationOut, GoalRequest, HealthStatus, RunOut } from './types';
+
+export interface TemplateOut {
+	id: string;
+	name: string;
+	description: string | null;
+	format: string;
+	schema_definition: Record<string, any>;
+	is_default: boolean;
+	created_at: string;
+	updated_at: string;
+}
 import { createSSEConnection, type SSEOptions, type SSEConnection } from './sse';
 
 export { createSSEConnection, type SSEOptions, type SSEConnection };
@@ -211,6 +222,33 @@ export class ApiClient {
 			method: 'POST',
 			body: JSON.stringify({ config })
 		});
+	}
+
+	// --- Template CRUD ---
+	async listTemplates(): Promise<TemplateOut[]> {
+		return this.request<TemplateOut[]>('/templates');
+	}
+	async createTemplate(payload: { name: string; description?: string; format?: string; schema_definition?: Record<string, any>; is_default?: boolean }): Promise<TemplateOut> {
+		return this.request<TemplateOut>('/templates', { method: 'POST', body: JSON.stringify(payload) });
+	}
+	async getTemplate(id: string): Promise<TemplateOut> {
+		return this.request<TemplateOut>(`/templates/${id}`);
+	}
+	async updateTemplate(id: string, payload: Partial<{ name: string; description: string; format: string; schema_definition: Record<string, any>; is_default: boolean }>): Promise<TemplateOut> {
+		return this.request<TemplateOut>(`/templates/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+	}
+	async deleteTemplate(id: string): Promise<void> {
+		await this.request<void>(`/templates/${id}`, { method: 'DELETE' });
+	}
+	async previewTemplate(schemaDefinition: Record<string, any>, sampleData?: Record<string, any>[], title?: string): Promise<string> {
+		const url = `${this.baseUrl}/templates/preview`;
+		const res = await fetch(url, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ schema_definition: schemaDefinition, sample_data: sampleData || [], title: title || 'Sample Orbit Mission Briefing' })
+		});
+		if (!res.ok) throw new Error(`HTTP ${res.status}`);
+		return res.text();
 	}
 }
 

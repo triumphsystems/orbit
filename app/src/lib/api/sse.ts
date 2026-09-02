@@ -13,7 +13,7 @@ export interface SSEConnection {
 }
 
 /**
- * Creates a robust, production-grade SSE (Server-Sent Events) connection.
+ * Creates a robust  SSE (Server-Sent Events) connection.
  * Automatically wires event handlers and cleans up connections.
  */
 export function createSSEConnection<T = any>(options: SSEOptions<T>): SSEConnection {

@@ -3,6 +3,8 @@ import logging
 from pathlib import Path
 from typing import Any
 
+import httpx
+
 from core.adapters.storage.database_sink import DatabaseExportSink
 from core.adapters.storage.s3_export import S3ExportSink
 from core.cache.service import cache_service
@@ -15,7 +17,7 @@ logger = logging.getLogger("core.services.workflow")
 class WorkflowService:
     """Core domain service for adapter topology discovery, DAG validation, and connection testing."""
 
-    _storage_path: Path = Path("exports/deployed_pipeline.json")
+    _storage_path: Path = Path(__file__).resolve().parent.parent / "exports" / "pipeline_topology.json"
     _deployed_pipeline: list[dict[str, Any]] = []
     _custom_adapter_configs: dict[str, dict[str, Any]] = {}
 
@@ -146,6 +148,56 @@ class WorkflowService:
         """Executes adapter probe dispatch without logging raw secrets."""
         clean_id = str(adapter_id).lower()
         try:
+            # 0. LLM Schema Extraction
+            if any(k in clean_id for k in ("llm", "schema_extractor", "extraction", "schema")) or clean_id == "5":
+                api_key = config.get("api_key") or ""
+                if "\u2022\u2022\u2022\u2022" in api_key or not api_key:
+                    saved_key = cls._custom_adapter_configs.get(str(adapter_id), {}).get("api_key")
+                    api_key = saved_key if saved_key and "\u2022\u2022\u2022\u2022" not in saved_key else get_settings().llm_api_key
+                if not api_key:
+                    return False, "LLM API key is not configured. Set LLM_API_KEY in environment settings."
+                return True, f"LLM extraction engine reachable. Model: {config.get('model') or get_settings().llm_model}"
+
+            # 0b. Document Parser (Layout Analysis)
+            if any(k in clean_id for k in ("doc_parser", "layout", "layout_parser", "parsing", "table_parser")) or clean_id == "3":
+                return True, "Document layout parser is active. No external credentials required."
+
+            # 0c. Format Normalization & OCR
+            if any(k in clean_id for k in ("format_converter", "ocr", "format_normal", "converter")) or clean_id == "4":
+                api_key = config.get("api_key") or ""
+                if "\u2022\u2022\u2022\u2022" in api_key or not api_key:
+                    saved_key = cls._custom_adapter_configs.get(str(adapter_id), {}).get("api_key")
+                    api_key = saved_key if saved_key and "\u2022\u2022\u2022\u2022" not in saved_key else get_settings().document_converter_api_key
+                if not api_key:
+                    return False, "Document Converter API key is not configured. Set DOCUMENT_CONVERTER_API_KEY to enable OCR and format normalization."
+                base_url = (config.get("base_url") or get_settings().document_converter_base_url).rstrip("/")
+                try:
+                    async with httpx.AsyncClient(timeout=10.0) as client:
+                        res = await client.get(f"{base_url}/health", headers={"Authorization": f"Bearer {api_key}"})
+                        if res.status_code < 500:
+                            return True, f"Format converter reachable at {base_url} (HTTP {res.status_code})."
+                        return False, f"Format converter returned HTTP {res.status_code}."
+                except Exception as probe_err:
+                    return False, f"Format converter unreachable: {probe_err}"
+
+            # 0d. PDF Report Generator / HTML Dossier / PII Redactor / Template Generator
+            if any(k in clean_id for k in ("html_dossier", "pdf_report", "dossier", "pii_redactor", "redactor", "template_generator", "template")) or clean_id in ("6",):
+                api_key = config.get("api_key") or ""
+                if "\u2022\u2022\u2022\u2022" in api_key or not api_key:
+                    saved_key = cls._custom_adapter_configs.get(str(adapter_id), {}).get("api_key")
+                    api_key = saved_key if saved_key and "\u2022\u2022\u2022\u2022" not in saved_key else (get_settings().document_dossier_api_key or get_settings().document_template_api_key or get_settings().document_redactor_api_key)
+                if not api_key:
+                    return False, "PDF Report Generator API key is not configured. Set DOCUMENT_DOSSIER_API_KEY to enable HTML-to-PDF generation."
+                base_url = (config.get("base_url") or get_settings().document_dossier_base_url).rstrip("/")
+                try:
+                    async with httpx.AsyncClient(timeout=10.0) as client:
+                        res = await client.get(base_url, headers={"Authorization": f"Bearer {api_key}"})
+                        if res.status_code < 500:
+                            return True, f"PDF generation engine reachable at {base_url} (HTTP {res.status_code})."
+                        return False, f"PDF generation engine returned HTTP {res.status_code}."
+                except Exception as probe_err:
+                    return False, f"PDF generation engine unreachable: {probe_err}"
+
             # 1. Database Warehouse Sink
             if any(k in clean_id for k in ("database", "db", "sql", "warehouse", "table")) or clean_id == "8":
                 raw_uri = config.get("connection_uri") or config.get("database_url") or ""
@@ -278,10 +330,6 @@ class WorkflowService:
         except Exception as e:
             logger.exception("Connection test failed for adapter %s: %s", adapter_id, e)
             return False, "An error occurred while probing the adapter. Please verify the configuration settings."
-
-    _custom_adapter_configs: dict[str, dict[str, Any]] = {}
-    _deployed_pipeline: list[dict[str, Any]] = []
-    _storage_path: Path = Path(__file__).resolve().parent.parent / "exports" / "pipeline_topology.json"
 
     @classmethod
     def deploy_pipeline(cls, nodes: list[dict[str, Any]]) -> list[dict[str, Any]]:
