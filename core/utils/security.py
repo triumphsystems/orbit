@@ -32,7 +32,7 @@ def is_ip_prohibited(ip_str: str, allow_private: bool = False) -> bool:
     try:
         ip = ipaddress.ip_address(ip_str)
     except ValueError:
-        return True
+        return False
 
     if ip.is_loopback:
         return True
@@ -81,15 +81,17 @@ def validate_url_target(url: str, allow_private: bool = False) -> tuple[bool, st
     if hostname_lower in BLOCKED_HOSTNAMES:
         return False, f"Access to internal metadata service '{hostname}' is blocked."
 
-    # Check literal IP address
+    # Check if hostname is a literal IP address
     try:
-        if is_ip_prohibited(hostname_lower, allow_private=allow_private):
+        ip = ipaddress.ip_address(hostname_lower)
+        if is_ip_prohibited(str(ip), allow_private=allow_private):
             return False, f"Access to restricted IP address '{hostname_lower}' is blocked."
         return True, None
     except ValueError:
+        # Not a literal IP address; proceed to DNS resolution
         pass
 
-    # Resolve domain to IP
+    # Resolve domain to IP and check resolved addresses against SSRF
     try:
         addr_info = socket.getaddrinfo(hostname_lower, None)
         for entry in addr_info:
@@ -97,6 +99,7 @@ def validate_url_target(url: str, allow_private: bool = False) -> tuple[bool, st
             if is_ip_prohibited(ip_str, allow_private=allow_private):
                 return False, f"Resolved IP '{ip_str}' for host '{hostname}' is restricted."
     except socket.gaierror:
+        # If DNS resolution fails, allow HTTP client to attempt or handle network failure
         pass
     except Exception as e:
         logger.warning("DNS resolution check failed for %s: %s", hostname, e)

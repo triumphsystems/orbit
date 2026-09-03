@@ -89,72 +89,64 @@ Once running, the remote SSE endpoint is accessible at:
 
 ## Client Configurations
 
-### Claude Desktop
+### Antigravity / Cursor
 
-Add to your `claude_desktop_config.json`:
+Add to your MCP Settings or `mcp_config.json`:
 
+**Local Stdio (Windows):**
 ```json
 {
   "mcpServers": {
     "orbit": {
-      "command": "python",
+      "command": "E:\\Documents\\Projects\\orbit\\mcp\\venv\\Scripts\\python.exe",
       "args": ["-m", "orbit.server"],
-      "cwd": "/path/to/orbit/mcp",
+      "cwd": "E:\\Documents\\Projects\\orbit\\mcp",
       "env": {
-        "ORBIT_API_URL": "http://127.0.0.1:8000",
-        "PYTHONPATH": "src"
+        "ORBIT_API_URL": "http://127.0.0.1:8000"
       }
     }
   }
 }
 ```
 
-### Cursor / Antigravity
-
-Add to `.cursor/mcp.json` or `.gemini/mcp.json`:
-
-**Local Stdio:**
+**Local Stdio (Linux / macOS):**
 ```json
 {
   "mcpServers": {
     "orbit": {
-      "command": "python",
+      "command": "/path/to/orbit/mcp/venv/bin/python",
       "args": ["-m", "orbit.server"],
       "cwd": "/path/to/orbit/mcp",
       "env": {
-        "ORBIT_API_URL": "http://127.0.0.1:8000",
-        "PYTHONPATH": "src"
+        "ORBIT_API_URL": "http://127.0.0.1:8000"
       }
     }
   }
 }
 ```
 
-**Remote SSE:**
+**Remote SSE Mode:**
 ```json
 {
   "mcpServers": {
     "orbit": {
-      "url": "http://<remote-host>:8001/sse"
+      "url": "http://127.0.0.1:8001/sse"
     }
   }
 }
 ```
 
-### VS Code (Cline / Roo-Code / Continue)
-
-Add to your MCP settings:
+### Claude Desktop & VS Code (Cline / Roo-Code)
 
 ```json
 {
   "mcpServers": {
     "orbit": {
-      "command": "python",
+      "command": "E:\\Documents\\Projects\\orbit\\mcp\\venv\\Scripts\\python.exe",
       "args": ["-m", "orbit.server"],
-      "cwd": "/path/to/orbit/mcp",
+      "cwd": "E:\\Documents\\Projects\\orbit\\mcp",
       "env": {
-        "ORBIT_API_URL": "http://127.0.0.1:8000",
-        "PYTHONPATH": "src"
+        "ORBIT_API_URL": "http://127.0.0.1:8000"
       }
     }
   }
