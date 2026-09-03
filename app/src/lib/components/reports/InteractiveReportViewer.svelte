@@ -77,7 +77,7 @@
 			</a>
 			<a
 				href={reportUrl}
-				download={`orbit_dossier_${run.id.slice(0, 8)}.html`}
+				download
 				class="flex items-center gap-1 px-3 py-1 bg-orbit-cyan/10 hover:bg-orbit-cyan/20 border border-orbit-cyan/30 text-orbit-cyan rounded-lg transition-colors font-medium"
 			>
 				<Download size={12} />
