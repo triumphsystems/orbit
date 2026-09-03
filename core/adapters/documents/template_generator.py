@@ -23,13 +23,21 @@ class TemplateDossierGenerator:
         records: list[dict[str, Any]],
         plan_summary: str | None = None,
         template_id: str | None = None,
+        sources: list[str] | None = None,
     ) -> bytes:
         """Merges extracted records into a document template via Doctavian / Enterprise Engine."""
+        extracted_sources = list(sources or [])
+        for r in records:
+            u = r.get("url")
+            if u and u not in extracted_sources:
+                extracted_sources.append(u)
+
         data_payload = {
             "automation_id": automation_id,
             "run_id": run_id,
             "summary": plan_summary or "Orbit Data Briefing",
             "record_count": len(records),
+            "sources": extracted_sources,
             "records": [
                 r.get("data") if isinstance(r, dict) and isinstance(r.get("data"), dict) else (r if isinstance(r, dict) else {})
                 for r in records

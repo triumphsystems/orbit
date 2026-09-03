@@ -46,6 +46,7 @@ class TemplatePreviewRequest(BaseModel):
     schema_definition: dict[str, Any] = Field(default_factory=dict)
     sample_data: list[dict[str, Any]] = Field(default_factory=list)
     title: str = "Sample Orbit Mission Briefing"
+    sources: list[str] = Field(default_factory=list)
 
 
 @router.get("", response_model=list[TemplateOut])
@@ -158,8 +159,8 @@ def render_template_preview(payload: TemplatePreviewRequest):
     """Renders a live HTML preview of the visual template schema with sample data."""
     schema = payload.schema_definition or {}
     sample_records = payload.sample_data or [
-        {"title": "Sample Opportunity A", "amount": "$5,000", "deadline": "2026-09-30", "status": "open"},
-        {"title": "Sample Fellowship B", "amount": "$12,500", "deadline": "2026-10-15", "status": "verified"},
+        {"title": "Sample Opportunity A", "amount": "$5,000", "deadline": "2026-09-30", "status": "open", "source_url": "https://arxiv.org/html/2601.13243v1"},
+        {"title": "Sample Fellowship B", "amount": "$12,500", "deadline": "2026-10-15", "status": "verified", "source_url": "https://www.researchgate.net/publication/394100858"},
     ]
 
     header_title = html.escape(str(schema.get("title") or payload.title))
@@ -168,6 +169,23 @@ def render_template_preview(payload: TemplatePreviewRequest):
     text_color = sanitize_css_color(schema.get("text_color"), default="#e2e8f0")
     show_summary = schema.get("show_summary", True)
     columns = [str(col) for col in (schema.get("columns") or ["title", "amount", "deadline", "status"])]
+
+    # Collect and normalize all verified data sources
+    extracted_sources = list(payload.sources or [])
+    for r in sample_records:
+        src = r.get("source_url") or r.get("url") or r.get("source")
+        if src and src not in extracted_sources:
+            extracted_sources.append(src)
+    if not extracted_sources:
+        extracted_sources = [
+            "https://arxiv.org/html/2601.13243v1",
+            "https://www.researchgate.net/publication/394100858",
+        ]
+
+    sources_items_html = "".join(
+        f"<li style='margin-bottom:4px;'><a href='{html.escape(s)}' target='_blank' rel='noopener noreferrer' style='color:{theme_color};text-decoration:none;'>{html.escape(s)}</a></li>"
+        for s in extracted_sources
+    )
 
     table_headers = "".join(
         f"<th style='padding:8px 12px;text-align:left;border:1px solid #1e293b;background:#141b2d;'>{html.escape(col.replace('_', ' ').title())}</th>"
@@ -181,6 +199,24 @@ def render_template_preview(payload: TemplatePreviewRequest):
             for col in columns
         )
         table_rows += f"<tr>{cells}</tr>"
+
+    summary_section = ""
+    if show_summary:
+        summary_section = f"""
+<div class='card'>
+  <p style='margin:0 0 10px 0;font-size:13px;line-height:1.5;'>
+    <strong>Summary:</strong> Autonomous extraction briefing compiled from <strong>{len(sample_records)} verified records</strong> across <strong>{len(extracted_sources)} verified data sources</strong>.
+  </p>
+  <div style='border-top:1px solid #1e293b;padding-top:8px;margin-top:8px;'>
+    <div style='font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;'>
+      Verified Data Sources ({len(extracted_sources)}):
+    </div>
+    <ul style='margin:0;padding-left:18px;font-size:11px;font-family:monospace;word-break:break-all;'>
+      {sources_items_html}
+    </ul>
+  </div>
+</div>
+"""
 
     html_content = f"""<!DOCTYPE html>
 <html>
@@ -198,7 +234,7 @@ table {{ width: 100%; border-collapse: collapse; margin-top: 1rem; font-family: 
 </style></head>
 <body>
 <h1>🛰️ {header_title}</h1>
-{f"<div class='card'><p><strong>Summary:</strong> Autonomous extraction briefing compiled from {len(sample_records)} verified records.</p></div>" if show_summary else ""}
+{summary_section}
 <table class="card"><thead><tr>{table_headers}</tr></thead><tbody>{table_rows}</tbody></table>
 <div style="margin-top:2rem;font-size:11px;color:#64748b;font-family:monospace;display:flex;justify-content:space-between;">
   <span>Rendered via Orbit Visual Template Studio</span>

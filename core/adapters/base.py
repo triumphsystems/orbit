@@ -50,6 +50,7 @@ class DocumentGenerator(Protocol):
         records: list[dict[str, Any]],
         plan_summary: str | None = None,
         template_id: str | None = None,
+        sources: list[str] | None = None,
     ) -> bytes: ...
 
 

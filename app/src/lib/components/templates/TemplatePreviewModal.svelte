@@ -14,10 +14,16 @@
 	let error = $state<string | null>(null);
 	let iframeEl = $state<HTMLIFrameElement | null>(null);
 
+	const sampleSources = [
+		'https://arxiv.org/html/2601.13243v1',
+		'https://www.researchgate.net/publication/394100858',
+		'https://grants.nih.gov/funding/search'
+	];
+
 	const sampleData = [
-		{ title: 'Research Grant Alpha', amount: '$48,500', deadline: '2026-11-30', status: 'open' },
-		{ title: 'Fellowship Program B', amount: '$12,000', deadline: '2026-10-15', status: 'verified' },
-		{ title: 'Contract Award C', amount: '$210,000', deadline: '2026-09-30', status: 'open' }
+		{ source_url: 'https://arxiv.org/html/2601.13243v1', title: 'Research Grant Alpha', amount: '$48,500', deadline: '2026-11-30', status: 'open' },
+		{ source_url: 'https://www.researchgate.net/publication/394100858', title: 'Fellowship Program B', amount: '$12,000', deadline: '2026-10-15', status: 'verified' },
+		{ source_url: 'https://grants.nih.gov/funding/search', title: 'Contract Award C', amount: '$210,000', deadline: '2026-09-30', status: 'open' }
 	];
 
 	async function loadPreview() {
@@ -28,7 +34,8 @@
 			htmlContent = await api.previewTemplate(
 				template.schema_definition,
 				sampleData,
-				template.schema_definition?.title || template.name
+				template.schema_definition?.title || template.name,
+				sampleSources
 			);
 		} catch (e: any) {
 			error = e.message || 'Preview failed';

@@ -294,7 +294,8 @@ export class ApiClient {
 	async previewTemplate(
 		schemaDefinition: Record<string, any>,
 		sampleData?: Record<string, any>[],
-		title?: string
+		title?: string,
+		sources?: string[]
 	): Promise<string> {
 		const url = `${this.baseUrl}/templates/preview`;
 		const res = await fetch(url, {
@@ -303,7 +304,8 @@ export class ApiClient {
 			body: JSON.stringify({
 				schema_definition: schemaDefinition,
 				sample_data: sampleData || [],
-				title: title || 'Sample Orbit Mission Briefing'
+				title: title || 'Sample Orbit Mission Briefing',
+				sources: sources || []
 			})
 		});
 		if (!res.ok) throw new Error(`HTTP ${res.status}`);

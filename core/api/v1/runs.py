@@ -189,17 +189,22 @@ def get_run_dossier(run_id: str, request: Request, db: Annotated[Session, Depend
     if request.headers.get("if-none-match") == etag or request.headers.get("If-None-Match") == etag:
         return Response(status_code=304, headers=headers)
 
-    # 1. Resolve potential on-disk dossier paths
-    candidate_paths = [
-        os.path.join("exports", run.automation_id, run.id, "dossier.pdf"),
-        os.path.join("exports", f"{run.automation_id[:8]}_{run.id[:8]}_dossier.pdf"),
-        os.path.join("exports", f"{run.automation_id}_{run.id}_dossier.pdf"),
-    ]
-    if os.path.exists("exports"):
+    # 1. Resolve potential on-disk dossier paths across root and core export locations
+    search_dirs = ["exports", os.path.join("core", "exports"), os.path.join("..", "exports")]
+    candidate_paths = []
+    for edir in search_dirs:
+        if not os.path.exists(edir):
+            continue
+        candidate_paths.append(os.path.join(edir, run.automation_id, run.id, "dossier.pdf"))
+        candidate_paths.append(os.path.join(edir, f"{run.automation_id[:8]}_{run.id[:8]}_dossier.pdf"))
+        candidate_paths.append(os.path.join(edir, f"{run.automation_id}_{run.id}_dossier.pdf"))
         run_prefix = run.id[:8]
-        for fname in os.listdir("exports"):
-            if run_prefix in fname and fname.endswith("_dossier.pdf"):
-                candidate_paths.append(os.path.join("exports", fname))
+        try:
+            for fname in os.listdir(edir):
+                if run_prefix in fname and fname.endswith("_dossier.pdf"):
+                    candidate_paths.append(os.path.join(edir, fname))
+        except Exception:
+            pass
 
     for p in candidate_paths:
         if os.path.exists(p) and os.path.getsize(p) > 0:
@@ -351,13 +356,73 @@ def get_run_dossier(run_id: str, request: Request, db: Annotated[Session, Depend
     color: #64748b;
     font-family: monospace;
   }}
+  .btn-print {{
+    background: #00f2fe15;
+    border: 1px solid #00f2fe40;
+    color: #00F2FE;
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }}
+  .btn-print:hover {{
+    background: #00f2fe25;
+    border-color: #00f2fe80;
+  }}
+  @media print {{
+    body {{
+      background: #ffffff !important;
+      color: #0f172a !important;
+      padding: 0 !important;
+    }}
+    .no-print {{ display: none !important; }}
+    .container {{ max-width: 100% !important; }}
+    .header {{ border-bottom: 2px solid #0f172a !important; }}
+    h1 {{ color: #0f172a !important; }}
+    .objective {{ color: #475569 !important; }}
+    .card {{
+      background: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      box-shadow: none !important;
+      page-break-inside: avoid;
+    }}
+    .card-title {{ color: #0f172a !important; }}
+    ul.source-list a {{ color: #0284c7 !important; text-decoration: underline !important; }}
+    table.data-table th {{
+      background: #f1f5f9 !important;
+      color: #0f172a !important;
+      border: 1px solid #cbd5e1 !important;
+    }}
+    table.data-table td {{
+      border: 1px solid #cbd5e1 !important;
+      color: #1e293b !important;
+    }}
+    pre.code-block {{
+      background: #f8fafc !important;
+      color: #0f172a !important;
+      border: 1px solid #cbd5e1 !important;
+    }}
+    .badge {{ border: 1px solid #cbd5e1 !important; }}
+    .badge-cyan {{ color: #0369a1 !important; background: #e0f2fe !important; }}
+    .badge-green {{ color: #15803d !important; background: #dcfce7 !important; }}
+  }}
 </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
-    <h1>🛰️ Orbit Mission Intelligence Dossier</h1>
-    <p class="objective"><strong>Objective:</strong> {goal}</p>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;">
+      <div>
+        <h1>🛰️ Orbit Mission Intelligence Dossier</h1>
+        <p class="objective"><strong>Objective:</strong> {goal}</p>
+      </div>
+      <div class="no-print">
+        <button onclick="window.print()" class="btn-print">🖨️ Save as PDF</button>
+      </div>
+    </div>
     <div class="meta-pills">
       <span class="badge">Run: {run.id[:8]}</span>
       <span class="badge badge-cyan">Status: {run.status.value.upper()}</span>
@@ -399,6 +464,49 @@ def get_run_dossier(run_id: str, request: Request, db: Annotated[Session, Depend
 </body>
 </html>"""
     return Response(content=html_report.encode("utf-8"), media_type="text/html", headers=headers)
+
+
+@router.post("/runs/{run_id}/compile-dossier")
+async def compile_run_dossier(
+    run_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    style: str = "html",
+    template_id: str | None = None,
+):
+    """Compiles and exports a dossier PDF/HTML for an already completed run on-demand."""
+    from core.adapters.documents.factory import DocumentAdapterFactory
+    from core.adapters.storage.local_export import LocalFileExportSink
+
+    run = resolve_entity_by_id_or_prefix(db, Run, run_id, "run")
+    records = [
+        {"url": r.url, "data": r.data, "valid": r.valid}
+        for r in (run.results or [])
+    ]
+    sources = run.sources_found or run.pages_retrieved or []
+
+    doc_gen = DocumentAdapterFactory.get_generator(style=style)
+    raw_dossier = await doc_gen.generate_dossier(
+        run.automation_id,
+        run.id,
+        records,
+        plan_summary=run.automation.raw_goal if run.automation else None,
+        template_id=template_id,
+        sources=sources,
+    )
+    doc_redactor = DocumentAdapterFactory.get_redactor()
+    dossier_bytes = await doc_redactor.redact_pii(raw_dossier)
+
+    export_sink = LocalFileExportSink()
+    await export_sink.export_results(
+        run.automation_id, run.id, records, dossier_bytes=dossier_bytes, dossier_filename="dossier.pdf"
+    )
+
+    return {
+        "status": "success",
+        "run_id": run.id,
+        "dossier_size_bytes": len(dossier_bytes),
+        "download_url": f"/api/v1/runs/{run.id}/dossier",
+    }
 
 
 @router.post("/runs/{run_id}/retry", response_model=RunOut, dependencies=[Depends(rate_limit("run"))])

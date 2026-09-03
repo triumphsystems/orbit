@@ -492,7 +492,12 @@ class AgentOrchestrator:
                         doc_gen = DocumentAdapterFactory.get_generator(style=style)
 
                         raw_dossier = await doc_gen.generate_dossier(
-                            automation.id, run.id, valid_records, plan_summary=plan.objective, template_id=template_id
+                            automation.id,
+                            run.id,
+                            valid_records,
+                            plan_summary=plan.objective,
+                            template_id=template_id,
+                            sources=run.sources_found or run.pages_retrieved or [],
                         )
                         dossier_bytes = await self.doc_redactor.redact_pii(raw_dossier)
 
