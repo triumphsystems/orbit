@@ -186,11 +186,15 @@ def render_template_preview(payload: TemplatePreviewRequest):
 <html>
 <head><meta charset="utf-8"><title>{header_title}</title>
 <style>
-body {{ font-family: 'Space Grotesk', system-ui, sans-serif; background: {bg_color}; color: {text_color}; padding: 2rem; }}
-h1 {{ color: {theme_color}; border-bottom: 2px solid {theme_color}40; padding-bottom: 8px; }}
+body {{ font-family: 'Space Grotesk', system-ui, sans-serif; background: {bg_color}; color: {text_color}; padding: 2rem; margin: 0; box-sizing: border-box; }}
+h1 {{ color: {theme_color}; border-bottom: 2px solid {theme_color}40; padding-bottom: 8px; margin-top: 0; }}
 .card {{ background: #0e131f; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; margin-top: 1rem; }}
 table {{ width: 100%; border-collapse: collapse; margin-top: 1rem; font-family: monospace; font-size: 12px; }}
-.badge {{ background: {theme_color}20; color: {theme_color}; padding: 3px 8px; border-radius: 4px; font-mono; font-size: 11px; }}
+.badge {{ background: {theme_color}20; color: {theme_color}; padding: 3px 8px; border-radius: 4px; font-family: monospace; font-size: 11px; }}
+::-webkit-scrollbar {{ width: 6px; height: 6px; }}
+::-webkit-scrollbar-track {{ background: transparent; }}
+::-webkit-scrollbar-thumb {{ background: #1e293b; border-radius: 3px; }}
+::-webkit-scrollbar-thumb:hover {{ background: #334155; }}
 </style></head>
 <body>
 <h1>🛰️ {header_title}</h1>

@@ -169,3 +169,37 @@ def test_calculate_next_run_wall_clock():
     next_lagos = next_dt.astimezone(ZoneInfo("Africa/Lagos"))
     assert next_lagos.hour == 8
     assert next_lagos.minute == 0
+
+
+def test_execution_plan_defaults_missing_search_query():
+    # Only objective provided
+    plan = ExecutionPlan.model_validate({"objective": "Test list runs"})
+    assert plan.objective == "Test list runs"
+    assert plan.search_query == "Test list runs"
+
+    # Only search_query provided
+    plan2 = ExecutionPlan.model_validate({"search_query": "cheap flights"})
+    assert plan2.objective == "cheap flights"
+    assert plan2.search_query == "cheap flights"
+
+    # Empty dict
+    plan3 = ExecutionPlan.model_validate({})
+    assert plan3.objective == ""
+    assert plan3.search_query == ""
+
+
+def test_automation_to_out_handles_partial_plan():
+    from core.api.serializers import automation_to_out
+    from core.db.orm import Automation
+
+    auto = Automation(
+        id="auto-123",
+        raw_goal="Test list runs",
+        plan={"objective": "Test list runs"},
+        active=True,
+    )
+    out = automation_to_out(auto)
+    assert out.id == "auto-123"
+    assert out.plan.objective == "Test list runs"
+    assert out.plan.search_query == "Test list runs"
+

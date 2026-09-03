@@ -16,12 +16,7 @@
 
 	const sampleData = [
 		{ title: 'Research Grant Alpha', amount: '$48,500', deadline: '2026-11-30', status: 'open' },
-		{
-			title: 'Fellowship Program B',
-			amount: '$12,000',
-			deadline: '2026-10-15',
-			status: 'verified'
-		},
+		{ title: 'Fellowship Program B', amount: '$12,000', deadline: '2026-10-15', status: 'verified' },
 		{ title: 'Contract Award C', amount: '$210,000', deadline: '2026-09-30', status: 'open' }
 	];
 
@@ -66,7 +61,7 @@
 		aria-label="Template Preview"
 	>
 		<div
-			class="w-full max-w-4xl bg-surface-900 border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]"
+			class="w-full max-w-4xl bg-surface-900 border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden h-[85vh] max-h-[820px]"
 		>
 			<!-- Header -->
 			<div class="flex items-center justify-between px-5 py-3.5 border-b border-white/10 shrink-0">
@@ -98,16 +93,16 @@
 			</div>
 
 			<!-- Preview Body -->
-			<div class="flex-1 overflow-hidden relative min-h-[400px]">
+			<div class="flex-1 w-full relative overflow-hidden bg-surface-950 min-h-[350px]">
 				{#if loading}
 					<div
-						class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-950/60"
+						class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-950/60 z-10"
 					>
 						<RefreshCw size={24} class="text-orbit-cyan animate-spin" />
 						<span class="text-xs font-mono text-slate-400">Rendering preview…</span>
 					</div>
 				{:else if error}
-					<div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center">
+					<div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center p-6 z-10">
 						<p class="text-sm font-mono text-rose-400">{error}</p>
 						<button
 							type="button"
@@ -119,7 +114,7 @@
 					<iframe
 						bind:this={iframeEl}
 						title="Template Preview"
-						class="w-full h-full border-0"
+						class="absolute inset-0 w-full h-full border-0 bg-transparent"
 						sandbox="allow-same-origin"
 					></iframe>
 				{/if}

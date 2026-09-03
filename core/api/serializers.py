@@ -5,13 +5,18 @@ from core.utils.sanitizer import sanitize_error_message
 
 
 def automation_to_out(a: Automation) -> AutomationOut:
+    try:
+        plan = ExecutionPlan.model_validate(a.plan) if isinstance(a.plan, dict) else a.plan
+    except Exception:
+        plan = ExecutionPlan(objective=a.raw_goal or "Automation Plan", search_query=a.raw_goal or "")
+
     return AutomationOut(
         id=a.id,
         raw_goal=a.raw_goal,
-        plan=ExecutionPlan.model_validate(a.plan),
+        plan=plan,
         active=a.active,
-        created_at=a.created_at.isoformat(),
-        next_run_at=a.next_run_at.isoformat() if a.next_run_at else None,
+        created_at=a.created_at.isoformat() if hasattr(a.created_at, "isoformat") else str(a.created_at),
+        next_run_at=a.next_run_at.isoformat() if a.next_run_at and hasattr(a.next_run_at, "isoformat") else (str(a.next_run_at) if a.next_run_at else None),
     )
 
 

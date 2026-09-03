@@ -147,8 +147,18 @@ class AgentOrchestrator:
         run: Run | None = None,
         resume: bool = False,
     ) -> Run:
-        """Executes or resumes an agent run with checkpointing, self-correction, validation, alerting, and verification."""
-        plan = ExecutionPlan.model_validate(automation.plan)
+        try:
+            plan = ExecutionPlan.model_validate(automation.plan)
+        except Exception as e:
+            logger.warning(
+                "Failed to validate execution plan for automation %s (%s). Falling back to basic plan.",
+                automation.id,
+                e,
+            )
+            plan = ExecutionPlan(
+                objective=automation.raw_goal or "Execution Plan",
+                search_query=automation.raw_goal or "",
+            )
 
         if run is None:
             run = Run(

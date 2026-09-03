@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from core.models.enums import Frequency
 
@@ -54,9 +54,9 @@ class MissingParameter(BaseModel):
 
 class ExecutionPlan(BaseModel):
     """The complete domain-agnostic execution plan produced by the Goal Interpreter."""
-    objective: str = Field(..., description="Concise summary of the goal")
+    objective: str = Field(default="", description="Concise summary of the goal")
     domain: str = Field(default="general", description="Identified domain: e.g. 'ecommerce', 'jobs', 'real_estate', 'travel', 'news', 'finance'")
-    search_query: str = Field(..., description="Optimized search query to find candidate sources")
+    search_query: str = Field(default="", description="Optimized search query to find candidate sources")
     source_hints: list[str] = Field(default_factory=list, description="Target domain hints or specific URLs requested by user (empty for open web)")
     geography: str | None = Field(default=None, description="Target country or location (e.g. 'Nigeria', 'United States', 'Global')")
     country_code: str | None = Field(default=None, description="2-letter ISO country code for proxy routing if applicable (e.g. 'ng', 'us')")
@@ -68,3 +68,13 @@ class ExecutionPlan(BaseModel):
     notification_channel: str | None = Field(default=None, description="Notification target e.g. 'webhook', 'email', 'log'")
     workflow_nodes: list[dict[str, Any]] = Field(default_factory=list, description="Synthesized DAG nodes for execution pipeline")
     missing_parameters: list[MissingParameter] = Field(default_factory=list, description="Required settings/credentials to elicit from user")
+
+    @model_validator(mode="before")
+    @classmethod
+    def _normalize_plan_fields(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if not data.get("search_query") and data.get("objective"):
+                data["search_query"] = data["objective"]
+            elif not data.get("objective") and data.get("search_query"):
+                data["objective"] = data["search_query"]
+        return data

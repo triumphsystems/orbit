@@ -1,7 +1,10 @@
+import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from core.config.settings import get_settings
+
+logger = logging.getLogger("core.db.session")
 
 settings = get_settings()
 
@@ -40,11 +43,13 @@ Base = declarative_base()
 
 
 def ensure_schema_columns(eng):
-    """Safely adds missing columns to existing tables in development/SQLite/PostgreSQL."""
+    """Safely adds missing columns and migrates mismatched column types in existing tables."""
     try:
         from sqlalchemy import inspect, text
         inspector = inspect(eng)
-        if "results" in inspector.get_table_names():
+        table_names = inspector.get_table_names()
+
+        if "results" in table_names:
             columns = [c["name"] for c in inspector.get_columns("results")]
             with eng.begin() as conn:
                 if "valid" not in columns:
@@ -53,9 +58,47 @@ def ensure_schema_columns(eng):
                     conn.execute(text("ALTER TABLE results ADD COLUMN validation_errors JSON"))
                 if "created_at" not in columns:
                     conn.execute(text("ALTER TABLE results ADD COLUMN created_at TIMESTAMP"))
-    except Exception:
-        # Fall back cleanly if reflection/migration fails
-        pass
+
+        if "runs" in table_names:
+            runs_cols = {c["name"]: c for c in inspector.get_columns("runs")}
+            with eng.begin() as conn:
+                # 1. Check pages_retrieved (migrate from INTEGER to JSON if needed)
+                if "pages_retrieved" not in runs_cols:
+                    conn.execute(text("ALTER TABLE runs ADD COLUMN pages_retrieved JSON"))
+                elif eng.dialect.name == "postgresql":
+                    col_type = str(runs_cols["pages_retrieved"]["type"]).upper()
+                    if "INT" in col_type:
+                        logger.info("Migrating runs.pages_retrieved from INTEGER to JSON...")
+                        conn.execute(
+                            text(
+                                "ALTER TABLE runs ALTER COLUMN pages_retrieved TYPE JSON "
+                                "USING (CASE WHEN pages_retrieved IS NULL THEN NULL ELSE '[]'::json END)"
+                            )
+                        )
+
+                # 2. Check sources_found (migrate from INTEGER to JSON if needed)
+                if "sources_found" not in runs_cols:
+                    conn.execute(text("ALTER TABLE runs ADD COLUMN sources_found JSON"))
+                elif eng.dialect.name == "postgresql":
+                    col_type = str(runs_cols["sources_found"]["type"]).upper()
+                    if "INT" in col_type:
+                        logger.info("Migrating runs.sources_found from INTEGER to JSON...")
+                        conn.execute(
+                            text(
+                                "ALTER TABLE runs ALTER COLUMN sources_found TYPE JSON "
+                                "USING (CASE WHEN sources_found IS NULL THEN NULL ELSE '[]'::json END)"
+                            )
+                        )
+
+                # 3. Check other audit trail columns
+                if "reasoning_log" not in runs_cols:
+                    conn.execute(text("ALTER TABLE runs ADD COLUMN reasoning_log JSON"))
+                if "condition_matched" not in runs_cols:
+                    conn.execute(text("ALTER TABLE runs ADD COLUMN condition_matched BOOLEAN"))
+                if "condition_message" not in runs_cols:
+                    conn.execute(text("ALTER TABLE runs ADD COLUMN condition_message TEXT"))
+    except Exception as e:
+        logger.warning("Schema auto-migration check encountered an error: %s", e)
 
 
 def cleanup_stale_runs():
