@@ -30,9 +30,61 @@ Orbit synthesizes execution plans, derives typed JSON schemas, discovers authori
 
 ## System Architecture
 
-Orbit is architected as a modular data platform consisting of an autonomous execution engine, a single-binary operator CLI, a mission control web dashboard, and extensible protocol adapters:
+Orbit is architected as a modular data platform consisting of an autonomous execution engine powered by the **AWS Strands Agents SDK**, a single-binary operator CLI, a mission control web dashboard, and extensible protocol adapters:
 
-![Orbit System Architecture](assets/orbit_system_architecture.png)
+```mermaid
+flowchart TD
+    subgraph Clients["Client & Interface Layer"]
+        UI["Orbit Web Console (Svelte 5 + Tailwind v4)"]
+        CLI["orbc CLI (Go Binary)"]
+        MCP_In["AI Agents via MCP (Claude, Cursor, Antigravity)"]
+    end
+
+    subgraph Gateway["FastAPI REST & Telemetry Gateway"]
+        API["REST API (/automations, /runs, /scheduler)"]
+        SSE["SSE Event Bus (/runs/{id}/stream)"]
+    end
+
+    subgraph Engine["Autonomous Agent Engine (AWS Strands SDK)"]
+        Orch["StrandsAgentOrchestrator"]
+        
+        subgraph AgentLoop["Model-Driven Recursive ReAct Loop"]
+            LLM["Default Foundation Model:\nGoogle Gemini 2.5 Flash\n(Fallback: Bedrock / Claude / GPT-4o)"]
+            Thought["1. Reasoning & Planning\n(Analyze objective & context)"]
+            Action["2. Dynamic Tool Selection\n(Choose optimal next step)"]
+            Observe["3. Observation & Reflection\n(Inspect retrieved data & self-heal)"]
+            
+            Thought --> Action
+            Action --> Observe
+            Observe --> Thought
+        end
+
+        Guard["Lifecycle Guardrails\n(Turn Limits, Token Budgets, Cancellation)"]
+    end
+
+    subgraph ToolSuite["Orbit Modular Tool Suite (@tool)"]
+        T_Search["search_web_sources\n(Google, SearXNG, SerpAPI)"]
+        T_Fetch["retrieve_webpage_content\n(Anti-Bot Proxy, PDF OCR, Markdown)"]
+        T_Extract["extract_structured_records\n(Schema-Driven Typed Extractor)"]
+        T_Dossier["compile_and_redact_dossier\n(Executive PDF Dossier & PII Redactor)"]
+        T_Export["export_records_sink\n(Local JSON, S3, SQL Database)"]
+        T_Alert["send_mission_alert\n(Slack, Email, Webhooks)"]
+    end
+
+    subgraph Persistence["Storage & Provenance Layer"]
+        DB[("PostgreSQL / SQLite\n(Runs, Results, Schemas, Audit Trails)")]
+        Disk[("Artifact Exports\n(PDF Dossiers, JSON, CSV)")]
+    end
+
+    Clients --> Gateway
+    API --> Orch
+    Orch --> AgentLoop
+    AgentLoop -.-> Guard
+    Action --> ToolSuite
+    ToolSuite --> Persistence
+    AgentLoop -- Live Telemetry & Logs --> SSE
+    SSE -.-> UI
+```
 
 ---
 

@@ -20,24 +20,52 @@ Orbit Core is the orchestrator and execution daemon of the Orbit platform. It ha
 
 ## Architecture & Module Structure
 
+Orbit Core executes missions via an autonomous model-driven agent loop powered by the **AWS Strands Agents SDK** with native **Google Gemini 2.5 Flash** tool execution:
+
+```mermaid
+flowchart TD
+    API["FastAPI Daemon (/api/v1/)"] --> Factory["Agent Orchestrator Factory"]
+    Factory --> Strands["StrandsAgentOrchestrator\n(core/agent/strands_orchestrator.py)"]
+    
+    subgraph AgentRuntime["Strands Agent Loop (In-Process)"]
+        Model["GeminiModel (gemini-2.5-flash)"]
+        ReAct["ReAct Reasoning Loop:\nThought -> Action -> Observation"]
+        Guard["Turn & Token Guardrails"]
+    end
+
+    subgraph Tools["Orbit Modular Tool Suite (core/agent/tools/)"]
+        T1["search_web_sources"]
+        T2["retrieve_webpage_content"]
+        T3["extract_structured_records"]
+        T4["compile_and_redact_dossier"]
+        T5["export_records_sink"]
+        T6["send_mission_alert"]
+    end
+
+    Strands --> AgentRuntime
+    AgentRuntime --> Tools
+    AgentRuntime -- SSE Telemetry --> Bus["EventBus -> Live UI Stream"]
+    Tools --> Storage[("PostgreSQL & S3/Local Exports")]
+```
+
 ```text
 core/
-├── adapters/         # Pluggable outputs & notification sinks (Slack, Webhooks, File sinks)
-├── agent/            # Goal Interpreter, Condition Evaluator, Agent Brain, Orchestrator
-├── api/              # FastAPI v1 router & endpoints (automations, runs, health)
-├── config/           # Pydantic Settings & environment configuration
-├── db/               # SQLAlchemy ORM models & database session management
-├── events/           # Async in-process Event Bus & event definitions
-├── llm/              # LLM client abstractions & prompt templates
+├── adapters/         # Pluggable outputs & document processors (PDF Dossier, PII Redaction)
+├── agent/            # Autonomous Agent Engine & Tool Suite
+│   ├── factory.py    # Dynamic Orchestrator Factory (Strands vs. Legacy engine switch)
+│   ├── orchestrator.py         # Legacy linear DAG orchestrator
+│   ├── strands_orchestrator.py # AWS Strands model-driven agent orchestrator
+│   └── tools/        # Strands @tool modules (discovery, retrieval, extraction, dossier, export, notification)
+├── api/              # FastAPI v1 router & endpoints (automations, runs, scheduler)
+├── config/           # Pydantic Settings & environment configuration (ORCHESTRATOR_ENGINE, LLM_MODEL)
+├── db/               # SQLAlchemy ORM models (Automation, Run, Result) & session management
+├── events/           # Async in-process Event Bus & SSE real-time streaming
+├── llm/              # LLM client abstractions & Strands model factory
+│   └── adapters/     # strands_model.py (Google Gemini, Bedrock, OpenAI, Anthropic)
 ├── models/           # Domain schemas, DynamicExtractionSchema, ExecutionPlan
-├── notifications/    # Alerting service (Webhooks & Structured Logs)
-├── pipeline/         # Discovery, Retrieval, Extraction, and Validation stages
-│   ├── discovery/    # Multi-source search & composite URL discovery
-│   ├── extraction/   # Schema-driven LLM structured data extractor
-│   ├── retrieval/    # Resilient proxy client & link extraction
-│   └── validation/   # JSONSchema validation & statistical anomaly detection
-├── scheduler/        # APScheduler recurring execution engine & cron helpers
-└── app.py            # FastAPI application factory and lifecycle manager
+├── pipeline/         # Underlying retrieval, discovery, and validation engines
+├── scheduler/        # APScheduler recurring execution daemon & cron helpers
+└── main.py           # FastAPI application entrypoint
 ```
 
 ---
