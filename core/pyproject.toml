@@ -7,6 +7,7 @@ name = "orbit"
 version = "0.2.0"
 description = "Autonomous Goal-Driven Web Data Operations"
 readme = "README.md"
+license = "Apache-2.0"
 requires-python = ">=3.10"
 dependencies = [
     "fastapi>=0.115.0",

@@ -4,7 +4,7 @@
 
 > *"Set the goal. Walk away."*
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/Go-1.23+-00ADD8?logo=go)](cli/)
 [![Python Version](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python)](core/)
 [![SvelteKit Version](https://img.shields.io/badge/SvelteKit-2.0+-FF3E00?logo=svelte)](app/)
@@ -167,4 +167,4 @@ orbc show <run_id>
 
 ## License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 — see the [LICENSE](LICENSE) file for details.
